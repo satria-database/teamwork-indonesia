@@ -1,0 +1,3 @@
+- [x] Perbaiki seluruh error pemeriksaan kode yang dilaporkan
+- [x] Pasang logo NOURA modern geometric minimalist pada aplikasi
+- [x] Verifikasi aplikasi dan tampilan logo

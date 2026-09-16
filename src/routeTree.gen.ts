@@ -10,33 +10,206 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as MasukRouteImport } from './routes/masuk'
+import { Route as McpRouteImport } from './routes/mcp'
+import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
+import { Route as AuthenticatedBerkasRouteImport } from './routes/_authenticated/berkas'
+import { Route as AuthenticatedCatatanRouteImport } from './routes/_authenticated/catatan'
+import { Route as AuthenticatedCvRouteImport } from './routes/_authenticated/cv'
+import { Route as AuthenticatedDasborRouteImport } from './routes/_authenticated/dasbor'
+import { Route as AuthenticatedMendatangRouteImport } from './routes/_authenticated/mendatang'
+import { Route as AuthenticatedNotulenRouteImport } from './routes/_authenticated/notulen'
+import { Route as AuthenticatedPengaturanRouteImport } from './routes/_authenticated/pengaturan'
+import { Route as AuthenticatedPenggunaRouteImport } from './routes/_authenticated/pengguna'
+import { Route as AuthenticatedTataLetakRouteImport } from './routes/_authenticated/tata-letak'
+import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MasukRoute = MasukRouteImport.update({
+  id: '/masuk',
+  path: '/masuk',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const McpRoute = McpRouteImport.update({
+  id: '/mcp',
+  path: '/mcp',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const Char91DotwellKnownChar93OauthProtectedResourceRoute =
+  Char91DotwellKnownChar93OauthProtectedResourceRouteImport.update({
+    id: '/.well-known/oauth-protected-resource',
+    path: '/.well-known/oauth-protected-resource',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const AuthenticatedBerkasRoute = AuthenticatedBerkasRouteImport.update({
+  id: '/berkas',
+  path: '/berkas',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedCatatanRoute = AuthenticatedCatatanRouteImport.update({
+  id: '/catatan',
+  path: '/catatan',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedCvRoute = AuthenticatedCvRouteImport.update({
+  id: '/cv',
+  path: '/cv',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedDasborRoute = AuthenticatedDasborRouteImport.update({
+  id: '/dasbor',
+  path: '/dasbor',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedMendatangRoute = AuthenticatedMendatangRouteImport.update({
+  id: '/mendatang',
+  path: '/mendatang',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedNotulenRoute = AuthenticatedNotulenRouteImport.update({
+  id: '/notulen',
+  path: '/notulen',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedPengaturanRoute = AuthenticatedPengaturanRouteImport.update({
+  id: '/pengaturan',
+  path: '/pengaturan',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedPenggunaRoute = AuthenticatedPenggunaRouteImport.update({
+  id: '/pengguna',
+  path: '/pengguna',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedTataLetakRoute = AuthenticatedTataLetakRouteImport.update({
+  id: '/tata-letak',
+  path: '/tata-letak',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const DotlovableOauthConsentRoute = DotlovableOauthConsentRouteImport.update({
+  id: '/.lovable/oauth/consent',
+  path: '/.lovable/oauth/consent',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/masuk': typeof MasukRoute
+  '/mcp': typeof McpRoute
+  '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
+  '/berkas': typeof AuthenticatedBerkasRoute
+  '/catatan': typeof AuthenticatedCatatanRoute
+  '/cv': typeof AuthenticatedCvRoute
+  '/dasbor': typeof AuthenticatedDasborRoute
+  '/mendatang': typeof AuthenticatedMendatangRoute
+  '/notulen': typeof AuthenticatedNotulenRoute
+  '/pengaturan': typeof AuthenticatedPengaturanRoute
+  '/pengguna': typeof AuthenticatedPenggunaRoute
+  '/tata-letak': typeof AuthenticatedTataLetakRoute
+  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/masuk': typeof MasukRoute
+  '/mcp': typeof McpRoute
+  '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
+  '/berkas': typeof AuthenticatedBerkasRoute
+  '/catatan': typeof AuthenticatedCatatanRoute
+  '/cv': typeof AuthenticatedCvRoute
+  '/dasbor': typeof AuthenticatedDasborRoute
+  '/mendatang': typeof AuthenticatedMendatangRoute
+  '/notulen': typeof AuthenticatedNotulenRoute
+  '/pengaturan': typeof AuthenticatedPengaturanRoute
+  '/pengguna': typeof AuthenticatedPenggunaRoute
+  '/tata-letak': typeof AuthenticatedTataLetakRoute
+  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/masuk': typeof MasukRoute
+  '/mcp': typeof McpRoute
+  '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
+  '/_authenticated/berkas': typeof AuthenticatedBerkasRoute
+  '/_authenticated/catatan': typeof AuthenticatedCatatanRoute
+  '/_authenticated/cv': typeof AuthenticatedCvRoute
+  '/_authenticated/dasbor': typeof AuthenticatedDasborRoute
+  '/_authenticated/mendatang': typeof AuthenticatedMendatangRoute
+  '/_authenticated/notulen': typeof AuthenticatedNotulenRoute
+  '/_authenticated/pengaturan': typeof AuthenticatedPengaturanRoute
+  '/_authenticated/pengguna': typeof AuthenticatedPenggunaRoute
+  '/_authenticated/tata-letak': typeof AuthenticatedTataLetakRoute
+  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/masuk'
+    | '/mcp'
+    | '/.well-known/oauth-protected-resource'
+    | '/berkas'
+    | '/catatan'
+    | '/cv'
+    | '/dasbor'
+    | '/mendatang'
+    | '/notulen'
+    | '/pengaturan'
+    | '/pengguna'
+    | '/tata-letak'
+    | '/.lovable/oauth/consent'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/masuk'
+    | '/mcp'
+    | '/.well-known/oauth-protected-resource'
+    | '/berkas'
+    | '/catatan'
+    | '/cv'
+    | '/dasbor'
+    | '/mendatang'
+    | '/notulen'
+    | '/pengaturan'
+    | '/pengguna'
+    | '/tata-letak'
+    | '/.lovable/oauth/consent'
+  id:
+    | '__root__'
+    | '/'
+    | '/_authenticated'
+    | '/masuk'
+    | '/mcp'
+    | '/.well-known/oauth-protected-resource'
+    | '/_authenticated/berkas'
+    | '/_authenticated/catatan'
+    | '/_authenticated/cv'
+    | '/_authenticated/dasbor'
+    | '/_authenticated/mendatang'
+    | '/_authenticated/notulen'
+    | '/_authenticated/pengaturan'
+    | '/_authenticated/pengguna'
+    | '/_authenticated/tata-letak'
+    | '/.lovable/oauth/consent'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  MasukRoute: typeof MasukRoute
+  McpRoute: typeof McpRoute
+  Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
+  DotlovableOauthConsentRoute: typeof DotlovableOauthConsentRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +221,142 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/masuk': {
+      id: '/masuk'
+      path: '/masuk'
+      fullPath: '/masuk'
+      preLoaderRoute: typeof MasukRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/mcp': {
+      id: '/mcp'
+      path: '/mcp'
+      fullPath: '/mcp'
+      preLoaderRoute: typeof McpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/.well-known/oauth-protected-resource': {
+      id: '/.well-known/oauth-protected-resource'
+      path: '/.well-known/oauth-protected-resource'
+      fullPath: '/.well-known/oauth-protected-resource'
+      preLoaderRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/berkas': {
+      id: '/_authenticated/berkas'
+      path: '/berkas'
+      fullPath: '/berkas'
+      preLoaderRoute: typeof AuthenticatedBerkasRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/catatan': {
+      id: '/_authenticated/catatan'
+      path: '/catatan'
+      fullPath: '/catatan'
+      preLoaderRoute: typeof AuthenticatedCatatanRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/cv': {
+      id: '/_authenticated/cv'
+      path: '/cv'
+      fullPath: '/cv'
+      preLoaderRoute: typeof AuthenticatedCvRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/dasbor': {
+      id: '/_authenticated/dasbor'
+      path: '/dasbor'
+      fullPath: '/dasbor'
+      preLoaderRoute: typeof AuthenticatedDasborRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/mendatang': {
+      id: '/_authenticated/mendatang'
+      path: '/mendatang'
+      fullPath: '/mendatang'
+      preLoaderRoute: typeof AuthenticatedMendatangRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/notulen': {
+      id: '/_authenticated/notulen'
+      path: '/notulen'
+      fullPath: '/notulen'
+      preLoaderRoute: typeof AuthenticatedNotulenRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/pengaturan': {
+      id: '/_authenticated/pengaturan'
+      path: '/pengaturan'
+      fullPath: '/pengaturan'
+      preLoaderRoute: typeof AuthenticatedPengaturanRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/pengguna': {
+      id: '/_authenticated/pengguna'
+      path: '/pengguna'
+      fullPath: '/pengguna'
+      preLoaderRoute: typeof AuthenticatedPenggunaRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/tata-letak': {
+      id: '/_authenticated/tata-letak'
+      path: '/tata-letak'
+      fullPath: '/tata-letak'
+      preLoaderRoute: typeof AuthenticatedTataLetakRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/.lovable/oauth/consent': {
+      id: '/.lovable/oauth/consent'
+      path: '/.lovable/oauth/consent'
+      fullPath: '/.lovable/oauth/consent'
+      preLoaderRoute: typeof DotlovableOauthConsentRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
+interface AuthenticatedRouteRouteChildren {
+  AuthenticatedBerkasRoute: typeof AuthenticatedBerkasRoute
+  AuthenticatedCatatanRoute: typeof AuthenticatedCatatanRoute
+  AuthenticatedCvRoute: typeof AuthenticatedCvRoute
+  AuthenticatedDasborRoute: typeof AuthenticatedDasborRoute
+  AuthenticatedMendatangRoute: typeof AuthenticatedMendatangRoute
+  AuthenticatedNotulenRoute: typeof AuthenticatedNotulenRoute
+  AuthenticatedPengaturanRoute: typeof AuthenticatedPengaturanRoute
+  AuthenticatedPenggunaRoute: typeof AuthenticatedPenggunaRoute
+  AuthenticatedTataLetakRoute: typeof AuthenticatedTataLetakRoute
+}
+
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedBerkasRoute: AuthenticatedBerkasRoute,
+  AuthenticatedCatatanRoute: AuthenticatedCatatanRoute,
+  AuthenticatedCvRoute: AuthenticatedCvRoute,
+  AuthenticatedDasborRoute: AuthenticatedDasborRoute,
+  AuthenticatedMendatangRoute: AuthenticatedMendatangRoute,
+  AuthenticatedNotulenRoute: AuthenticatedNotulenRoute,
+  AuthenticatedPengaturanRoute: AuthenticatedPengaturanRoute,
+  AuthenticatedPenggunaRoute: AuthenticatedPenggunaRoute,
+  AuthenticatedTataLetakRoute: AuthenticatedTataLetakRoute,
+}
+
+const AuthenticatedRouteRouteWithChildren =
+  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  MasukRoute: MasukRoute,
+  McpRoute: McpRoute,
+  Char91DotwellKnownChar93OauthProtectedResourceRoute:
+    Char91DotwellKnownChar93OauthProtectedResourceRoute,
+  DotlovableOauthConsentRoute: DotlovableOauthConsentRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
