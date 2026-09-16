@@ -100,6 +100,20 @@ export interface LandingPageConfig {
   skillsBadges: string[];
   specializationHeader: string;
   specializationItems: string[];
+
+  // 7. Kartu pekerjaan tahun berjalan di samping CV
+  showYearWorkCards: boolean;
+  yearWorkTitle: string;
+  yearWorkItems: LandingYearWorkItem[];
+}
+
+export interface LandingYearWorkItem {
+  id: string;
+  title: string;
+  description: string;
+  date: string;
+  category: string;
+  status: "selesai" | "berjalan" | "direncanakan";
 }
 
 export const DEFAULT_LANDING_CONFIG: LandingPageConfig = {
@@ -152,6 +166,26 @@ export const DEFAULT_LANDING_CONFIG: LandingPageConfig = {
     "Pengarsipan database spreadsheet & katalog digital",
     "Manajemen alur kerja terstruktur dan kepatuhan administrasi",
   ],
+  showYearWorkCards: true,
+  yearWorkTitle: "Pekerjaan Tahun Ini",
+  yearWorkItems: [
+    {
+      id: "work-1",
+      title: "Penyusunan Database Produk",
+      description: "Standardisasi data, validasi spesifikasi, dan pembaruan katalog barang.",
+      date: "2026-08-20",
+      category: "Data & Katalog",
+      status: "selesai",
+    },
+    {
+      id: "work-2",
+      title: "Pengembangan Noura Workspace",
+      description: "Penyempurnaan alur catatan kerja, dokumen, dan tampilan portofolio.",
+      date: "2026-09-12",
+      category: "Development",
+      status: "berjalan",
+    },
+  ],
 };
 
 const STORAGE_KEY = "noura_landing_page_config";
@@ -194,6 +228,20 @@ export function getSafeLandingConfig(
     specializationItems: Array.isArray(raw.specializationItems)
       ? raw.specializationItems
       : [],
+    yearWorkItems: Array.isArray(raw.yearWorkItems)
+      ? raw.yearWorkItems
+          .filter((item) => item && typeof item === "object")
+          .map((item, index) => ({
+            id: String(item.id || `work-${index + 1}`),
+            title: String(item.title || "Pekerjaan tanpa judul"),
+            description: String(item.description || ""),
+            date: String(item.date || ""),
+            category: String(item.category || "Pekerjaan"),
+            status: ["selesai", "berjalan", "direncanakan"].includes(item.status)
+              ? item.status
+              : "berjalan",
+          }))
+      : DEFAULT_LANDING_CONFIG.yearWorkItems,
   };
 }
 

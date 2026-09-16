@@ -18,6 +18,8 @@ import {
   User,
   FileBadge,
   SlidersHorizontal,
+  CalendarDays,
+  Clock3,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -47,6 +49,8 @@ export const Route = createFileRoute("/")({
           "Catatan pekerjaan, jadwal, dokumen, dan portofolio dalam satu tempat terpadu realtime.",
       },
       { property: "og:title", content: "WorkSpace & Portfolio — Noura" },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
       {
         property: "og:description",
         content:
@@ -335,7 +339,7 @@ export default function LandingPage() {
           id="cv"
           className="py-16 md:py-24 bg-white dark:bg-slate-900/60 border-y border-slate-200/70 dark:border-slate-800/80"
         >
-          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             {/* Header Section CV */}
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-10">
               <div>
@@ -378,8 +382,9 @@ export default function LandingPage() {
               </div>
             </div>
 
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(280px,1fr)] lg:items-start">
             {/* Profile Master Card */}
-            <div className="bg-slate-50 dark:bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-200/80 dark:border-slate-800 shadow-sm">
+            <div className="min-w-0 bg-slate-50 dark:bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-200/80 dark:border-slate-800 shadow-sm">
               {/* Top Identity Row */}
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-slate-200/80 dark:border-slate-800">
                 <div className="flex items-start sm:items-center gap-4">
@@ -568,6 +573,64 @@ export default function LandingPage() {
 
                 </div>
               </div>
+            </div>
+            {landingConfig.showYearWorkCards && (
+              <aside className="min-w-0 rounded-3xl border border-slate-200/80 bg-slate-50 p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900 lg:sticky lg:top-24">
+                <div className="flex items-start justify-between gap-3 border-b border-slate-200/80 pb-4 dark:border-slate-800">
+                  <div className="min-w-0">
+                    <p className="text-[11px] font-bold uppercase text-indigo-600 dark:text-indigo-400">
+                      Portofolio {new Date().getFullYear()}
+                    </p>
+                    <h3 className="mt-1 text-lg font-bold text-slate-900 dark:text-white">
+                      {landingConfig.yearWorkTitle || "Pekerjaan Tahun Ini"}
+                    </h3>
+                  </div>
+                  <div className="grid size-10 shrink-0 place-items-center rounded-xl bg-indigo-50 text-indigo-600 dark:bg-indigo-950/60 dark:text-indigo-400">
+                    <Briefcase className="size-5" />
+                  </div>
+                </div>
+
+                <div className="mt-4 space-y-3">
+                  {landingConfig.yearWorkItems.length > 0 ? (
+                    landingConfig.yearWorkItems.map((item) => (
+                      <article key={item.id} className="rounded-2xl border border-slate-200/80 bg-white p-4 dark:border-slate-700/80 dark:bg-slate-800/80">
+                        <div className="flex items-start justify-between gap-3">
+                          <span className="text-[10px] font-semibold uppercase text-indigo-600 dark:text-indigo-400">
+                            {item.category}
+                          </span>
+                          <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+                            item.status === "selesai"
+                              ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300"
+                              : item.status === "berjalan"
+                                ? "bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300"
+                                : "bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300"
+                          }`}>
+                            {item.status === "selesai" ? "Selesai" : item.status === "berjalan" ? "Berjalan" : "Direncanakan"}
+                          </span>
+                        </div>
+                        <h4 className="mt-2 text-sm font-bold leading-snug text-slate-900 dark:text-white">{item.title}</h4>
+                        {item.description && (
+                          <p className="mt-1.5 text-xs leading-relaxed text-slate-500 dark:text-slate-400">{item.description}</p>
+                        )}
+                        {item.date && (
+                          <div className="mt-3 flex items-center gap-1.5 text-[11px] font-medium text-slate-400">
+                            <CalendarDays className="size-3.5" />
+                            <time dateTime={item.date}>
+                              {new Intl.DateTimeFormat("id-ID", { day: "numeric", month: "short", year: "numeric" }).format(new Date(`${item.date}T00:00:00`))}
+                            </time>
+                          </div>
+                        )}
+                      </article>
+                    ))
+                  ) : (
+                    <div className="rounded-2xl border border-dashed border-slate-300 px-4 py-8 text-center dark:border-slate-700">
+                      <Clock3 className="mx-auto size-5 text-slate-400" />
+                      <p className="mt-2 text-xs text-slate-500">Belum ada pekerjaan yang ditampilkan.</p>
+                    </div>
+                  )}
+                </div>
+              </aside>
+            )}
             </div>
           </div>
         </section>
