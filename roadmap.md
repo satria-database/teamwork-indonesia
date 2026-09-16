@@ -1,3 +1,5 @@
 - [x] Perbaiki seluruh error pemeriksaan kode yang dilaporkan
 - [x] Pasang logo NOURA modern geometric minimalist pada aplikasi
 - [x] Verifikasi aplikasi dan tampilan logo
+- [x] Geser tampilan CV ke kiri dan tambahkan kartu pekerjaan tahun berjalan
+- [x] Tambahkan editor kartu pekerjaan pada pengaturan tata letak landing
