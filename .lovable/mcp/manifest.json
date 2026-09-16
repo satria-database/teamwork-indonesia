@@ -1,0 +1,246 @@
+{
+  "version": 1,
+  "sdk_version": "2.0.4",
+  "path": "/mcp",
+  "auth": {
+    "type": "oauth",
+    "issuer": "https://olvogyukyydooiuzljml.supabase.co/auth/v1",
+    "accepted_audiences": [
+      "authenticated"
+    ]
+  },
+  "mcp": {
+    "server": {
+      "name": "lovable-workhub",
+      "version": "0.1.0",
+      "title": "Lovable WorkHub"
+    },
+    "tools": [
+      {
+        "name": "list_records",
+        "title": "Daftar data WorkHub",
+        "description": "Ambil daftar data dari WorkHub: task harian (tugas), catatan pekerjaan (catatan_kerja), pekerjaan mendatang, notulen, atau berkas.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "jenis": {
+              "type": "string",
+              "enum": [
+                "tugas",
+                "catatan_kerja",
+                "pekerjaan_mendatang",
+                "notulen",
+                "berkas"
+              ]
+            },
+            "limit": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            }
+          },
+          "required": [
+            "jenis"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "create_tugas",
+        "title": "Buat task harian",
+        "description": "Tambahkan task harian baru di WorkHub. Hanya berhasil untuk pengguna Admin.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "judul": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Judul task"
+            },
+            "catatan": {
+              "type": "string"
+            },
+            "tanggal": {
+              "type": "string",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+              "description": "Tanggal YYYY-MM-DD"
+            },
+            "prioritas": {
+              "type": "string",
+              "enum": [
+                "rendah",
+                "sedang",
+                "tinggi"
+              ],
+              "default": "sedang"
+            }
+          },
+          "required": [
+            "judul"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "set_tugas_selesai",
+        "title": "Tandai task selesai",
+        "description": "Ubah status selesai sebuah task harian. Hanya berhasil untuk pengguna Admin.",
+        "annotations": {
+          "readOnlyHint": false,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "format": "uuid",
+              "description": "ID task"
+            },
+            "selesai": {
+              "type": "boolean",
+              "default": true
+            }
+          },
+          "required": [
+            "id"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "create_catatan_kerja",
+        "title": "Buat catatan pekerjaan",
+        "description": "Tambahkan catatan pekerjaan baru di WorkHub. Hanya berhasil untuk pengguna Admin.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "judul": {
+              "type": "string",
+              "minLength": 1
+            },
+            "isi": {
+              "type": "string"
+            },
+            "tanggal": {
+              "type": "string",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+            },
+            "durasi_menit": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "required": [
+            "judul"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "create_pekerjaan_mendatang",
+        "title": "Buat pekerjaan mendatang",
+        "description": "Tambahkan rencana pekerjaan mendatang di WorkHub. Hanya berhasil untuk Admin.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "judul": {
+              "type": "string",
+              "minLength": 1
+            },
+            "deskripsi": {
+              "type": "string"
+            },
+            "tenggat": {
+              "type": "string",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+            },
+            "status": {
+              "type": "string",
+              "enum": [
+                "direncanakan",
+                "berjalan",
+                "selesai"
+              ],
+              "default": "direncanakan"
+            }
+          },
+          "required": [
+            "judul"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "create_notulen",
+        "title": "Buat notulen",
+        "description": "Tambahkan notulen rapat baru di WorkHub. Hanya berhasil untuk pengguna Admin.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "judul": {
+              "type": "string",
+              "minLength": 1
+            },
+            "tanggal": {
+              "type": "string",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+            },
+            "peserta": {
+              "type": "string"
+            },
+            "isi": {
+              "type": "string"
+            },
+            "keputusan": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "judul"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      }
+    ]
+  }
+}
