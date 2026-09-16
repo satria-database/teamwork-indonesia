@@ -1,0 +1,6 @@
+{
+  "name": "Kerja Teman Indonesia",
+  "description": "Aplikasi personal workhub berbahasa Indonesia untuk mengelola catatan pekerjaan, pekerjaan mendatang, notulen, dan berkas.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
