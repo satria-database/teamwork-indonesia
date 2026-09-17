@@ -83,8 +83,8 @@ export function AppShell({ children }: { children: ReactNode }) {
   const userTitle = [profile?.job_title, isAdmin ? "Admin" : "Viewer"].filter(Boolean).join(" • ");
 
   return (
-    <div className="min-h-dvh w-full bg-[#f8fafc] dark:bg-[#0f172a] transition-colors duration-300 font-sans">
-      <div className="flex min-h-dvh w-full flex-col overflow-hidden bg-[#f8fafc] transition-colors duration-300 dark:bg-[#0f172a] md:flex-row">
+    <div className="h-dvh w-full overflow-hidden bg-[#f8fafc] dark:bg-[#0f172a] transition-colors duration-300 font-sans">
+      <div className="flex h-dvh w-full flex-col overflow-hidden bg-[#f8fafc] transition-colors duration-300 dark:bg-[#0f172a] md:flex-row">
         {/* Mobile Header Bar */}
         <div className="flex md:hidden items-center justify-between px-3 py-2.5 border-b border-slate-200/70 dark:border-slate-800 bg-white dark:bg-slate-900">
           <div className="flex items-center gap-2.5">
