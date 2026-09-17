@@ -43,7 +43,6 @@ function Masuk() {
     else navigate({ to: "/dasbor", replace: true });
   }, [next, navigate]);
 
-  const [mode, setMode] = useState<"masuk" | "daftar">("masuk");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -63,20 +62,9 @@ function Masuk() {
     }
     setLoading(true);
     try {
-      if (mode === "masuk") {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) throw error;
-        lanjut();
-      } else {
-        const { data, error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: { emailRedirectTo: window.location.origin + (next || "/masuk") },
-        });
-        if (error) throw error;
-        if (data.session) lanjut();
-        else toast.success("Akun dibuat. Cek email Anda untuk konfirmasi, lalu masuk.");
-      }
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+      lanjut();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Terjadi kesalahan");
     } finally {
@@ -98,12 +86,10 @@ function Masuk() {
           </Link>
           <UserAvatar className="size-14" />
           <h1 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white mt-3">
-            {mode === "masuk" ? "Masuk ke Workspace" : "Buat Akun Baru"}
+            Masuk ke Workspace
           </h1>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-xs">
-            {mode === "masuk"
-              ? "Noura Workhub • Ruang kerja personal terintegrasi"
-              : "Daftar untuk mengakses dashboard dan manajemen pekerjaan"}
+            Noura Workhub • Ruang kerja personal terintegrasi
           </p>
         </div>
 
@@ -163,22 +149,16 @@ function Masuk() {
             className="w-full rounded-full bg-slate-900 text-white dark:bg-white dark:text-slate-900 hover:bg-slate-800 text-xs font-bold py-2.5 shadow-md flex items-center justify-center gap-2"
           >
             <span>
-              {loading ? "Memproses…" : mode === "masuk" ? "Masuk ke Akun" : "Daftar Sekarang"}
+              {loading ? "Memproses…" : "Masuk ke Akun"}
             </span>
             <ArrowRight className="size-3.5" />
           </Button>
         </form>
 
         <div className="mt-6 pt-5 border-t border-slate-100 dark:border-slate-800/80 text-center space-y-2">
-          <button
-            type="button"
-            className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:underline"
-            onClick={() => setMode(mode === "masuk" ? "daftar" : "masuk")}
-          >
-            {mode === "masuk"
-              ? "Belum punya akun? Daftar di sini"
-              : "Sudah punya akun? Masuk langsung"}
-          </button>
+          <p className="text-xs text-slate-500 dark:text-slate-400">
+            Pendaftaran mandiri dinonaktifkan. Akun baru hanya dapat dibuat oleh admin.
+          </p>
           <div>
             <Link
               to="/"

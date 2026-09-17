@@ -83,8 +83,8 @@ export function AppShell({ children }: { children: ReactNode }) {
   const userTitle = [profile?.job_title, isAdmin ? "Admin" : "Viewer"].filter(Boolean).join(" • ");
 
   return (
-    <div className="min-h-dvh w-full bg-[#f8fafc] dark:bg-[#0f172a] transition-colors duration-300 font-sans">
-      <div className="flex min-h-dvh w-full flex-col overflow-hidden bg-[#f8fafc] transition-colors duration-300 dark:bg-[#0f172a] md:flex-row">
+    <div className="h-dvh w-full overflow-hidden bg-[#f8fafc] dark:bg-[#0f172a] transition-colors duration-300 font-sans">
+      <div className="flex h-dvh w-full flex-col overflow-hidden bg-[#f8fafc] transition-colors duration-300 dark:bg-[#0f172a] md:flex-row">
         {/* Mobile Header Bar */}
         <div className="flex md:hidden items-center justify-between px-3 py-2.5 border-b border-slate-200/70 dark:border-slate-800 bg-white dark:bg-slate-900">
           <div className="flex items-center gap-2.5">
@@ -186,7 +186,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         )}
 
         {/* Desktop Left Sidebar matching the reference design */}
-        <aside className="hidden md:flex w-64 xl:w-72 shrink-0 flex-col justify-between border-r border-slate-200/70 p-5 xl:p-7 dark:border-slate-800/80">
+        <aside className="hidden md:flex md:sticky md:top-0 h-dvh w-64 xl:w-72 shrink-0 flex-col justify-between gap-6 overflow-y-auto overscroll-contain custom-scrollbar border-r border-slate-200/70 p-5 xl:p-7 dark:border-slate-800/80">
           <div className="space-y-6">
             <Link
               to="/dasbor"
