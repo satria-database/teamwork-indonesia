@@ -186,7 +186,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         )}
 
         {/* Desktop Left Sidebar matching the reference design */}
-        <aside className="hidden md:flex w-64 xl:w-72 shrink-0 flex-col justify-between border-r border-slate-200/70 p-5 xl:p-7 dark:border-slate-800/80">
+        <aside className="hidden md:flex md:sticky md:top-0 h-dvh w-64 xl:w-72 shrink-0 flex-col justify-between gap-6 overflow-y-auto overscroll-contain custom-scrollbar border-r border-slate-200/70 p-5 xl:p-7 dark:border-slate-800/80">
           <div className="space-y-6">
             <Link
               to="/dasbor"
