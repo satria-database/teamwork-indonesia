@@ -158,15 +158,9 @@ function Masuk() {
         </form>
 
         <div className="mt-6 pt-5 border-t border-slate-100 dark:border-slate-800/80 text-center space-y-2">
-          <button
-            type="button"
-            className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:underline"
-            onClick={() => setMode(mode === "masuk" ? "daftar" : "masuk")}
-          >
-            {mode === "masuk"
-              ? "Belum punya akun? Daftar di sini"
-              : "Sudah punya akun? Masuk langsung"}
-          </button>
+          <p className="text-xs text-slate-500 dark:text-slate-400">
+            Pendaftaran mandiri dinonaktifkan. Akun baru hanya dapat dibuat oleh admin.
+          </p>
           <div>
             <Link
               to="/"
