@@ -86,12 +86,10 @@ function Masuk() {
           </Link>
           <UserAvatar className="size-14" />
           <h1 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white mt-3">
-            {mode === "masuk" ? "Masuk ke Workspace" : "Buat Akun Baru"}
+            Masuk ke Workspace
           </h1>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-xs">
-            {mode === "masuk"
-              ? "Noura Workhub • Ruang kerja personal terintegrasi"
-              : "Daftar untuk mengakses dashboard dan manajemen pekerjaan"}
+            Noura Workhub • Ruang kerja personal terintegrasi
           </p>
         </div>
 
