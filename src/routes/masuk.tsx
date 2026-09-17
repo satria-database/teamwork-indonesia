@@ -43,7 +43,6 @@ function Masuk() {
     else navigate({ to: "/dasbor", replace: true });
   }, [next, navigate]);
 
-  const [mode, setMode] = useState<"masuk" | "daftar">("masuk");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -63,20 +62,9 @@ function Masuk() {
     }
     setLoading(true);
     try {
-      if (mode === "masuk") {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) throw error;
-        lanjut();
-      } else {
-        const { data, error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: { emailRedirectTo: window.location.origin + (next || "/masuk") },
-        });
-        if (error) throw error;
-        if (data.session) lanjut();
-        else toast.success("Akun dibuat. Cek email Anda untuk konfirmasi, lalu masuk.");
-      }
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+      lanjut();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Terjadi kesalahan");
     } finally {
