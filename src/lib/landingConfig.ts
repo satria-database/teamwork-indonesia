@@ -73,6 +73,7 @@ export interface LandingPageConfig {
   heroTitle: string;
   heroSubtitle: string;
   heroBadgeText: string;
+  adminWhatsAppNumber: string;
 
   // 4. Konfigurasi Catatan Kerja di Landing Page
   workLogsFilter: "semua" | "selesai" | "berjalan";
@@ -131,6 +132,7 @@ export const DEFAULT_LANDING_CONFIG: LandingPageConfig = {
   heroSubtitle:
     "Catatan pekerjaan, jadwal, dokumen, dan portofolio saya dalam satu tempat.",
   heroBadgeText: "Technical Data Support & Portfolio",
+  adminWhatsAppNumber: "081216130661",
 
   workLogsFilter: "semua",
   workLogsLimit: 4,
