@@ -18,6 +18,7 @@ import {
   RotateCcw,
   Check,
   Eye,
+  Layers,
   FileText,
   User,
   Sparkles,
