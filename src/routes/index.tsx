@@ -5,7 +5,6 @@ import {
   GraduationCap,
   Sparkles,
   ArrowRight,
-  FolderOpen,
   MapPin,
   Phone,
   Mail,
@@ -13,8 +12,6 @@ import {
   Copy,
   Check,
   Printer,
-  ShieldCheck,
-  Database,
   User,
   FileBadge,
   SlidersHorizontal,
@@ -204,14 +201,6 @@ export default function LandingPage() {
                 className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
               >
                 Curriculum Vitae
-              </a>
-            )}
-            {landingConfig.showFeaturesSection && (
-              <a
-                href="#fitur"
-                className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
-              >
-                Fitur Workspace
               </a>
             )}
             {landingConfig.showSkillsSection && (
@@ -636,124 +625,7 @@ export default function LandingPage() {
         </section>
       )}
 
-      {/* 5. FITUR WORKSPACE LENGKAP */}
-      {landingConfig.showFeaturesSection && (
-        <section id="fitur" className="py-16 md:py-24 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-2xl mx-auto mb-12">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-indigo-50 dark:bg-indigo-950/70 border border-indigo-100 dark:border-indigo-900 text-indigo-700 dark:text-indigo-300 text-xs font-semibold mb-2">
-              <ShieldCheck className="size-3.5" />
-              <span>KEUNGGULAN WORKSPACE</span>
-            </div>
-            <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white tracking-tight">
-              Fondasi Teknologi & Keamanan
-            </h2>
-            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
-              Dirancang dengan arsitektur modern berstandar enterprise untuk menjamin data tersimpan
-              aman dan selalu sinkron.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col justify-between">
-              <div>
-                <div className="size-11 rounded-2xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 flex items-center justify-center mb-4">
-                  <Database className="size-5" />
-                </div>
-                <h3 className="font-bold text-base text-slate-900 dark:text-white mb-1.5">
-                  Supabase PostgreSQL Cloud
-                </h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-                  Seluruh data aktivitas, notulen, berkas, dan CV tersimpan pada database PostgreSQL
-                  dengan keamanan Row Level Security (RLS).
-                </p>
-              </div>
-              <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800 text-[11px] text-emerald-600 font-semibold flex items-center gap-1.5">
-                <CheckCircle2 className="size-3.5" />
-                <span>Dukungan Enkripsi Cloud</span>
-              </div>
-            </div>
-
-            <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col justify-between">
-              <div>
-                <div className="size-11 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 flex items-center justify-center mb-4">
-                  <FolderOpen className="size-5" />
-                </div>
-                <h3 className="font-bold text-base text-slate-900 dark:text-white mb-1.5">
-                  Struktur Folder Hirarkis
-                </h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-                  Fitur berkas dilengkapi kemampuan membuat folder dan subfolder bertingkat untuk
-                  kemudahan klasifikasi arsip dokumen pekerjaan.
-                </p>
-              </div>
-              <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800 text-[11px] text-indigo-600 font-semibold flex items-center gap-1.5">
-                <CheckCircle2 className="size-3.5" />
-                <span>Navigasi Breadcrumb Dinamis</span>
-              </div>
-            </div>
-
-            <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col justify-between">
-              <div>
-                <div className="size-11 rounded-2xl bg-violet-50 dark:bg-violet-950/60 text-violet-600 flex items-center justify-center mb-4">
-                  <Sparkles className="size-5" />
-                </div>
-                <h3 className="font-bold text-base text-slate-900 dark:text-white mb-1.5">
-                  Parsing & Konversi CV Cerdas
-                </h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-                  Kemampuan mengonversi teks mentah menjadi format CV terstruktur secara otomatis,
-                  serta ekspor langsung ke format PDF standar ATS.
-                </p>
-              </div>
-              <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800 text-[11px] text-violet-600 font-semibold flex items-center gap-1.5">
-                <CheckCircle2 className="size-3.5" />
-                <span>Cetak & Download Siap Pakai</span>
-              </div>
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* 6. BOTTOM CTA */}
-      {landingConfig.showCTASection && (
-      <section className="py-14 bg-gradient-to-tr from-slate-900 via-indigo-950 to-slate-900 text-white text-center">
-        <div className="max-w-4xl mx-auto px-4">
-          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">
-            Mulai Bekerja di Ruang Kerja WorkHub
-          </h2>
-          <p className="mt-2 text-xs sm:text-sm text-slate-300 max-w-xl mx-auto">
-            Masuk untuk mengakses seluruh fitur pencatatan, penjadwalan tugas, dokumentasi keputusan
-            rapat, dan manajemen arsip berkas.
-          </p>
-          <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
-            <Button
-              asChild
-              size="lg"
-              className="rounded-2xl bg-white text-slate-900 hover:bg-slate-100 font-bold text-sm h-11 px-6 gap-2 cursor-pointer shadow-sm"
-            >
-              <Link to={user ? "/dasbor" : "/masuk"}>
-                <span>{user ? "Buka Dasbor Kerja" : "Masuk ke Workspace"}</span>
-                <ArrowRight className="size-4" />
-              </Link>
-            </Button>
-
-            <Button
-              asChild
-              variant="outline"
-              size="lg"
-              className="rounded-2xl border-slate-700 bg-slate-800/60 text-white hover:bg-slate-800 font-semibold text-sm h-11 px-5 gap-2 cursor-pointer"
-            >
-              <Link to="/cv">
-                <FileBadge className="size-4 text-indigo-400" />
-                <span>Format CV PDF</span>
-              </Link>
-            </Button>
-          </div>
-        </div>
-      </section>
-      )}
-
-      {/* 7. FOOTER */}
+      {/* FOOTER */}
       <footer className="py-8 bg-white dark:bg-slate-950 border-t border-slate-200/80 dark:border-slate-800 text-xs text-slate-500 dark:text-slate-400">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">

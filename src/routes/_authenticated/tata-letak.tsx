@@ -11,9 +11,7 @@ import {
   Check,
   Sparkles,
   UserCheck,
-  Layers,
   Cpu,
-  Compass,
   ExternalLink,
   CheckCircle2,
   FileBadge,
@@ -49,9 +47,7 @@ export const Route = createFileRoute("/_authenticated/tata-letak")({
 const SECTION_ICONS: Partial<Record<LandingSectionId, typeof Sparkles>> = {
   hero: Sparkles,
   cv: UserCheck,
-  features: Layers,
   skills: Cpu,
-  cta: Compass,
 };
 
 function TataLetakLandingPage() {
@@ -100,12 +96,8 @@ function TataLetakLandingPage() {
           return { ...prev, showHeroSection: enabled };
         case "cv":
           return { ...prev, showCVSection: enabled };
-        case "features":
-          return { ...prev, showFeaturesSection: enabled };
         case "skills":
           return { ...prev, showSkillsSection: enabled };
-        case "cta":
-          return { ...prev, showCTASection: enabled };
         default:
           return prev;
       }
@@ -119,12 +111,8 @@ function TataLetakLandingPage() {
         return config.showHeroSection;
       case "cv":
         return config.showCVSection;
-      case "features":
-        return config.showFeaturesSection;
       case "skills":
         return config.showSkillsSection;
-      case "cta":
-        return config.showCTASection;
       default:
         return true;
     }

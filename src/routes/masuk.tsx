@@ -95,9 +95,6 @@ function Masuk() {
           <h1 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white mt-3">
             Masuk ke Workspace
           </h1>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-xs">
-            Noura Workhub • Ruang kerja personal terintegrasi
-          </p>
         </div>
 
         {!isSupabaseConfigured && (

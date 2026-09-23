@@ -1,9 +1,7 @@
 import {
   Sparkles,
   UserCheck,
-  Layers,
   Cpu,
-  Compass,
   Briefcase,
   GraduationCap,
   CheckCircle2,
@@ -26,9 +24,7 @@ interface LandingPreviewProps {
 const SECTION_ICONS: Partial<Record<LandingSectionId, typeof Sparkles>> = {
   hero: Sparkles,
   cv: UserCheck,
-  features: Layers,
   skills: Cpu,
-  cta: Compass,
 };
 
 /**
@@ -42,9 +38,7 @@ export function LandingPreview({ config, cvData }: LandingPreviewProps) {
     switch (id) {
       case "hero": return config.showHeroSection;
       case "cv": return config.showCVSection;
-      case "features": return config.showFeaturesSection;
       case "skills": return config.showSkillsSection;
-      case "cta": return config.showCTASection;
       default: return true;
     }
   };
@@ -75,12 +69,8 @@ export function LandingPreview({ config, cvData }: LandingPreviewProps) {
                 return <PreviewHero key={sectionId} config={config} cv={cv} />;
               case "cv":
                 return <PreviewCV key={sectionId} config={config} cv={cv} />;
-              case "features":
-                return <PreviewSimple key={sectionId} icon={Layers} label={meta?.label || "Fitur"} color="violet" />;
               case "skills":
                 return <PreviewSimple key={sectionId} icon={Cpu} label={meta?.label || "Keahlian"} color="amber" />;
-              case "cta":
-                return <PreviewCTA key={sectionId} />;
               default:
                 return null;
             }
@@ -251,7 +241,7 @@ function PreviewSimple({ icon: Icon, label, color }: { icon: typeof Sparkles; la
   };
   return (
     <div className="px-6 py-4 border-b border-slate-200/60 dark:border-slate-800">
-      <div className={`flex items-center gap-2 p-2.5 rounded-xl border ${colorMap[color] || colorMap.violet}`}>
+      <div className={`flex items-center gap-2 p-2.5 rounded-xl border ${colorMap[color] || colorMap["violet"]}`}>
         <Icon className="size-3.5" />
         <span className="text-[10px] font-bold">{label}</span>
       </div>
@@ -259,17 +249,3 @@ function PreviewSimple({ icon: Icon, label, color }: { icon: typeof Sparkles; la
   );
 }
 
-/* --- CTA --- */
-function PreviewCTA() {
-  return (
-    <div className="px-6 py-5 bg-gradient-to-tr from-slate-900 via-indigo-950 to-slate-900 text-center">
-      <h3 className="text-sm font-bold text-white">Mulai Bekerja di Ruang Kerja WorkHub</h3>
-      <p className="text-[10px] text-slate-300 mt-1 max-w-xs mx-auto">
-        Masuk untuk mengakses seluruh fitur pencatatan dan manajemen arsip.
-      </p>
-      <span className="inline-block mt-2.5 px-3 py-1.5 rounded-xl bg-white text-slate-900 text-[10px] font-bold">
-        Masuk ke Workspace
-      </span>
-    </div>
-  );
-}
