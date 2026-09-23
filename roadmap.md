@@ -3,3 +3,4 @@
 - [x] Verifikasi aplikasi dan tampilan logo
 - [x] Geser tampilan CV ke kiri dan tambahkan kartu pekerjaan tahun berjalan
 - [x] Tambahkan editor kartu pekerjaan pada pengaturan tata letak landing
+- [x] Tambahkan kontak WhatsApp admin pada halaman masuk dan pengaturannya

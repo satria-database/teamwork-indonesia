@@ -1,13 +1,14 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Lock, Mail, ArrowRight, ShieldCheck, Sparkles } from "lucide-react";
+import { Lock, Mail, ArrowRight, MessageCircle } from "lucide-react";
 import { supabase, isSupabaseConfigured, EMAIL_ADMIN_PERTAMA } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { UserAvatar } from "@/components/UserAvatar";
 import { NouraLogo } from "@/components/NouraLogo";
+import { DEFAULT_LANDING_CONFIG, getLandingConfig } from "@/lib/landingConfig";
 
 export const Route = createFileRoute("/masuk")({
   head: () => ({
@@ -46,8 +47,14 @@ function Masuk() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [adminWhatsAppNumber, setAdminWhatsAppNumber] = useState(
+    DEFAULT_LANDING_CONFIG.adminWhatsAppNumber,
+  );
+
+  const whatsappDigits = adminWhatsAppNumber.replace(/\D/g, "").replace(/^0/, "62");
 
   useEffect(() => {
+    setAdminWhatsAppNumber(getLandingConfig().adminWhatsAppNumber);
     if (!isSupabaseConfigured) return;
     supabase.auth.getSession().then(({ data }) => {
       if (data.session) lanjut();
@@ -159,6 +166,17 @@ function Masuk() {
           <p className="text-xs text-slate-500 dark:text-slate-400">
             Pendaftaran mandiri dinonaktifkan. Akun baru hanya dapat dibuat oleh admin.
           </p>
+          {whatsappDigits && (
+            <a
+              href={`https://wa.me/${whatsappDigits}`}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center justify-center gap-1.5 text-xs font-semibold text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300 transition-colors"
+            >
+              <MessageCircle className="size-3.5" />
+              <span>Hubungi admin via WhatsApp</span>
+            </a>
+          )}
           <div>
             <Link
               to="/"

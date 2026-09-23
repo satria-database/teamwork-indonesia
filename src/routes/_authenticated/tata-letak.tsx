@@ -21,6 +21,7 @@ import {
   Trash2,
   X,
   BriefcaseBusiness,
+  MessageCircle,
 } from "lucide-react";
 import { PageHeader } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
@@ -511,6 +512,30 @@ function TataLetakLandingPage() {
                   placeholder="Technical Data Support & Portfolio"
                   className="rounded-xl mt-1 text-sm font-medium"
                 />
+              </div>
+
+              <div className="pt-3 border-t border-slate-100 dark:border-slate-800">
+                <Label
+                  htmlFor="adminWhatsAppNumber"
+                  className="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5"
+                >
+                  <MessageCircle className="size-3.5 text-emerald-600" />
+                  Nomor WhatsApp Admin
+                </Label>
+                <Input
+                  id="adminWhatsAppNumber"
+                  type="tel"
+                  inputMode="tel"
+                  value={config.adminWhatsAppNumber}
+                  onChange={(e) =>
+                    setConfig((prev) => ({ ...prev, adminWhatsAppNumber: e.target.value }))
+                  }
+                  placeholder="Contoh: 081216130661"
+                  className="rounded-xl mt-1 text-sm font-medium"
+                />
+                <p className="mt-1.5 text-[11px] text-slate-500 dark:text-slate-400">
+                  Ditampilkan sebagai tautan kontak admin pada halaman masuk.
+                </p>
               </div>
             </div>
           </div>
