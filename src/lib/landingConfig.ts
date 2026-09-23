@@ -5,9 +5,7 @@ export type LandingSectionId =
   | "metrics"
   | "dashboard"
   | "cv"
-  | "features"
-  | "skills"
-  | "cta";
+  | "skills";
 
 export const ALL_LANDING_SECTIONS: {
   id: LandingSectionId;
@@ -28,21 +26,9 @@ export const ALL_LANDING_SECTIONS: {
     defaultEnabled: true,
   },
   {
-    id: "features",
-    label: "Fitur Unggulan Workspace",
-    desc: "Kartu sorotan kemampuan sistem Noura Personal Workspace",
-    defaultEnabled: true,
-  },
-  {
     id: "skills",
     label: "Matriks Keahlian & Spesialisasi",
     desc: "Daftar keahlian teknis, analisis data, dan standardisasi produk",
-    defaultEnabled: true,
-  },
-  {
-    id: "cta",
-    label: "Call to Action (CTA) Bawah",
-    desc: "Banner penutup untuk akses langsung ke dasbor atau masuk akun",
     defaultEnabled: true,
   },
 ];
@@ -50,9 +36,7 @@ export const ALL_LANDING_SECTIONS: {
 export const DEFAULT_SECTION_ORDER: LandingSectionId[] = [
   "hero",
   "cv",
-  "features",
   "skills",
-  "cta",
 ];
 
 export interface LandingPageConfig {
@@ -65,9 +49,7 @@ export interface LandingPageConfig {
   showDashboardSection: boolean;
   showCVSection: boolean;
   showVerifiedAchievementsInCV: boolean;
-  showFeaturesSection: boolean;
   showSkillsSection: boolean;
-  showCTASection: boolean;
 
   // 3. Teks & Kustomisasi Hero
   heroTitle: string;
@@ -124,9 +106,7 @@ export const DEFAULT_LANDING_CONFIG: LandingPageConfig = {
   showDashboardSection: true,
   showCVSection: true,
   showVerifiedAchievementsInCV: true,
-  showFeaturesSection: true,
   showSkillsSection: true,
-  showCTASection: true,
 
   heroTitle: "WorkSpace & Portfolio",
   heroSubtitle:

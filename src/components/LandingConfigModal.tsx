@@ -30,7 +30,6 @@ import {
   ArrowDown,
   ExternalLink,
   Cpu,
-  Compass,
 } from "lucide-react";
 import {
   LandingPageConfig,
@@ -115,14 +114,8 @@ export function LandingConfigModal({
       case "cv":
         setDraft({ ...safe, showCVSection: val });
         break;
-      case "features":
-        setDraft({ ...safe, showFeaturesSection: val });
-        break;
       case "skills":
         setDraft({ ...safe, showSkillsSection: val });
-        break;
-      case "cta":
-        setDraft({ ...safe, showCTASection: val });
         break;
     }
   };
@@ -138,12 +131,8 @@ export function LandingConfigModal({
         return safe.showDashboardSection;
       case "cv":
         return safe.showCVSection;
-      case "features":
-        return safe.showFeaturesSection;
       case "skills":
         return safe.showSkillsSection;
-      case "cta":
-        return safe.showCTASection;
       default:
         return true;
     }
@@ -375,25 +364,6 @@ export function LandingConfigModal({
                   checked={currentDraft.showCVSection}
                   onCheckedChange={(val) =>
                     setDraft((prev) => ({ ...getSafeConfig(prev), showCVSection: val }))
-                  }
-                />
-              </div>
-
-              {/* 4. Fitur Workspace */}
-              <div className="flex items-center justify-between gap-3 pt-2 border-t border-slate-200/60 dark:border-slate-800">
-                <div className="space-y-0.5">
-                  <Label className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
-                    <Layers className="size-3.5 text-purple-500" />
-                    <span>Bagian Fitur Ruang Kerja</span>
-                  </Label>
-                  <p className="text-[11px] text-slate-500">
-                    Menampilkan kartu modul fitur sistem Noura Workspace.
-                  </p>
-                </div>
-                <Switch
-                  checked={currentDraft.showFeaturesSection}
-                  onCheckedChange={(val) =>
-                    setDraft((prev) => ({ ...getSafeConfig(prev), showFeaturesSection: val }))
                   }
                 />
               </div>

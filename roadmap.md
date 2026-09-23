@@ -4,3 +4,4 @@
 - [x] Geser tampilan CV ke kiri dan tambahkan kartu pekerjaan tahun berjalan
 - [x] Tambahkan editor kartu pekerjaan pada pengaturan tata letak landing
 - [x] Tambahkan kontak WhatsApp admin pada halaman masuk dan pengaturannya
+- [x] Hapus teks Workhub di halaman masuk, bagian fondasi teknologi, dan ajakan bawah landing
