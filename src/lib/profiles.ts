@@ -118,8 +118,8 @@ export async function updateUserProfile(
     avatar_url: cleanAvatarUrl,
     updated_at: new Date().toISOString(),
     // Preserve account type metadata
-    account_type: existingMeta.account_type,
-    parent_user_id: existingMeta.parent_user_id,
+    account_type: existingMeta["account_type"],
+    parent_user_id: existingMeta["parent_user_id"],
   };
 
   // 1. Simpan ke Supabase Auth User Metadata (presisten, realtime, aman)

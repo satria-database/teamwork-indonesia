@@ -77,14 +77,14 @@ function Catatan() {
           kategori: kategoriFilter,
           tanggal: tanggalFilter,
         },
-        effectiveUserId,
+        effectiveUserId ?? undefined,
       ),
   });
 
   // Fetch Scheduled Upcoming Works (target date <= today and not finished)
   const { data: scheduledUpcoming = [] } = useQuery({
     queryKey: ["upcoming_works", "due_or_overdue"],
-    queryFn: () => fetchUpcomingWorks({ onlyDueOrOverdue: true }, effectiveUserId),
+    queryFn: () => fetchUpcomingWorks({ onlyDueOrOverdue: true }, effectiveUserId ?? undefined),
   });
 
   // Mutate: Create or Edit Work Log
@@ -93,7 +93,7 @@ function Catatan() {
       if (id) {
         await updateWorkLog(id, payload);
       } else {
-        await createWorkLog(payload, effectiveUserId);
+        await createWorkLog(payload, effectiveUserId ?? undefined);
       }
     },
     onSuccess: (_, variables) => {
@@ -311,7 +311,7 @@ function Catatan() {
       <WorkLogImportDialog
         open={importOpen}
         onOpenChange={setImportOpen}
-        userId={user?.id}
+        {...(user?.id ? { userId: user.id } : {})}
         onImported={() => qc.invalidateQueries({ queryKey: ["work_logs"] })}
       />
 

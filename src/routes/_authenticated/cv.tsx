@@ -96,7 +96,7 @@ function CurriculumVitaePage() {
   const { user, isAdmin, effectiveUserId } = useAuth();
   const { profile } = useProfile();
 
-  const [cv, setCv] = useState<CVData>(() => createDefaultCVForUser(user?.email, profile));
+  const [cv, setCv] = useState<CVData>(() => createDefaultCVForUser(user?.email, profile ?? undefined));
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [storageType, setStorageType] = useState<"cloud" | "local">("local");
@@ -127,7 +127,7 @@ function CurriculumVitaePage() {
         // ignore
       }
     }
-    setCv(createDefaultCVForUser(user?.email, profile));
+    setCv(createDefaultCVForUser(user?.email, profile ?? undefined));
   }, [user?.id, user?.email, profile]);
 
   // Muat catatan pekerjaan yang telah diselesaikan dari dasbor
@@ -181,7 +181,7 @@ function CurriculumVitaePage() {
         setTableMissing(false);
         setStorageType("cloud");
 
-        const fallback = createDefaultCVForUser(user.email, profile);
+        const fallback = createDefaultCVForUser(user.email, profile ?? undefined);
 
         if (data) {
           setCv({
@@ -218,7 +218,7 @@ function CurriculumVitaePage() {
           }
         } else {
           // Buat CV default dinamis untuk akun ini
-          const initialUserCV = createDefaultCVForUser(user.email, profile);
+          const initialUserCV = createDefaultCVForUser(user.email, profile ?? undefined);
           setCv(initialUserCV);
           setLastSyncedAt(new Date());
           if (showNotification) {
@@ -285,24 +285,24 @@ function CurriculumVitaePage() {
             setCv((prev) => ({
               ...prev,
               nama_lengkap:
-                typeof row.nama_lengkap === "string" ? row.nama_lengkap : prev.nama_lengkap,
-              headline: typeof row.headline === "string" ? row.headline : prev.headline,
-              alamat: typeof row.alamat === "string" ? row.alamat : prev.alamat,
-              telepon: typeof row.telepon === "string" ? row.telepon : prev.telepon,
-              email: typeof row.email === "string" ? row.email : prev.email,
+                typeof row["nama_lengkap"] === "string" ? row["nama_lengkap"] : prev.nama_lengkap,
+              headline: typeof row["headline"] === "string" ? row["headline"] : prev.headline,
+              alamat: typeof row["alamat"] === "string" ? row["alamat"] : prev.alamat,
+              telepon: typeof row["telepon"] === "string" ? row["telepon"] : prev.telepon,
+              email: typeof row["email"] === "string" ? row["email"] : prev.email,
               tentang_saya:
-                typeof row.tentang_saya === "string" ? row.tentang_saya : prev.tentang_saya,
-              pengalaman: Array.isArray(row.pengalaman)
-                ? (row.pengalaman as PengalamanKerja[])
+                typeof row["tentang_saya"] === "string" ? row["tentang_saya"] : prev.tentang_saya,
+              pengalaman: Array.isArray(row["pengalaman"])
+                ? (row["pengalaman"] as PengalamanKerja[])
                 : prev.pengalaman,
-              pendidikan: Array.isArray(row.pendidikan)
-                ? (row.pendidikan as RiwayatPendidikan[])
+              pendidikan: Array.isArray(row["pendidikan"])
+                ? (row["pendidikan"] as RiwayatPendidikan[])
                 : prev.pendidikan,
-              keahlian: Array.isArray(row.keahlian) ? (row.keahlian as string[]) : prev.keahlian,
+              keahlian: Array.isArray(row["keahlian"]) ? (row["keahlian"] as string[]) : prev.keahlian,
               foto_url:
-                typeof row.foto_url === "string" ? row.foto_url : prev.foto_url,
+                typeof row["foto_url"] === "string" ? row["foto_url"] : (prev.foto_url ?? null),
               foto_position:
-                typeof row.foto_position === "string" ? row.foto_position : prev.foto_position,
+                typeof row["foto_position"] === "string" ? row["foto_position"] : (prev.foto_position ?? null),
             }));
             setLastSyncedAt(new Date());
             toast.info("Perubahan CV diperbarui secara realtime dari cloud!");
@@ -321,8 +321,8 @@ function CurriculumVitaePage() {
           if (payload.new && typeof payload.new === "object") {
             const p = payload.new as Record<string, unknown>;
             if (realtimeSyncWithDashboard) {
-              const fullName = typeof p.full_name === "string" ? p.full_name.trim() : "";
-              const jobTitle = typeof p.job_title === "string" ? p.job_title.trim() : "";
+              const fullName = typeof p["full_name"] === "string" ? p["full_name"].trim() : "";
+              const jobTitle = typeof p["job_title"] === "string" ? p["job_title"].trim() : "";
               setCv((prev) => ({
                 ...prev,
                 nama_lengkap: fullName || prev.nama_lengkap,
@@ -1471,7 +1471,7 @@ function CurriculumVitaePage() {
               </p>
               <Button
                 type="button"
-                onClick={() => applyParsedCV(createDefaultCVForUser(user?.email, profile))}
+                onClick={() => applyParsedCV(createDefaultCVForUser(user?.email, profile ?? undefined))}
                 className="w-full rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold h-8 gap-1.5 cursor-pointer mt-1"
               >
                 <Check className="size-3.5" />

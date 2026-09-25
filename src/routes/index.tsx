@@ -22,6 +22,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
+import { useProfile } from "@/hooks/useProfile";
 import { supabase } from "@/lib/supabase";
 import { DEFAULT_CV_SATRIA, createDefaultCVForUser, type CVData } from "@/lib/cvData";
 import { NouraLogo } from "@/components/NouraLogo";
@@ -59,10 +60,12 @@ export const Route = createFileRoute("/")({
 });
 
 export default function LandingPage() {
-  const { user, profile } = useAuth();
+  const { user } = useAuth();
+  const { profile } = useProfile();
   const [copiedEmail, setCopiedEmail] = useState(false);
   const [landingConfig, setLandingConfig] = useState<LandingPageConfig>(DEFAULT_LANDING_CONFIG);
   const [configModalOpen, setConfigModalOpen] = useState(false);
+  const activeUserName = profile?.full_name || user?.email;
 
   // CV data state
   const [cvData, setCvData] = useState<CVData>(DEFAULT_CV_SATRIA);
@@ -121,7 +124,7 @@ export default function LandingPage() {
 
       const baseCV =
         landingConfig.cvSource === "active_user" && user
-          ? createDefaultCVForUser(user.email, profile)
+          ? createDefaultCVForUser(user.email, profile ?? undefined)
           : DEFAULT_CV_SATRIA;
 
       if (cv) {
@@ -683,8 +686,8 @@ export default function LandingPage() {
         onSave={handleSaveConfig}
         availableWorkLogs={[]}
         workLogs={[]}
-        activeUserEmail={user?.email}
-        activeUserName={profile?.nama || user?.email}
+        {...(user?.email ? { activeUserEmail: user.email } : {})}
+        {...(activeUserName ? { activeUserName } : {})}
       />
     </div>
   );

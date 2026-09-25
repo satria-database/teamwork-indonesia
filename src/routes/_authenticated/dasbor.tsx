@@ -158,12 +158,12 @@ function Dasbor() {
   // Queries for real work logs and upcoming works
   const { data: workLogs = [] } = useQuery({
     queryKey: ["work_logs"],
-    queryFn: () => fetchWorkLogs(undefined, effectiveUserId),
+    queryFn: () => fetchWorkLogs(undefined, effectiveUserId ?? undefined),
   });
 
   const { data: upcomingWorks = [] } = useQuery({
     queryKey: ["upcoming_works"],
-    queryFn: () => fetchUpcomingWorks(undefined, effectiveUserId),
+    queryFn: () => fetchUpcomingWorks(undefined, effectiveUserId ?? undefined),
   });
 
   // Dynamic greeting using user's real name and current time
@@ -2200,7 +2200,7 @@ RINGKASAN MODUL SIDEBAR:
               await updateWorkLog(id, payload);
               toast.success("Catatan pekerjaan berhasil diperbarui");
             } else {
-              await createWorkLog(payload, effectiveUserId);
+              await createWorkLog(payload, effectiveUserId ?? undefined);
               toast.success("Catatan pekerjaan berhasil ditambahkan");
             }
             qc.invalidateQueries({ queryKey: ["work_logs"] });
@@ -2294,7 +2294,7 @@ RINGKASAN MODUL SIDEBAR:
               onClick={async () => {
                 if (!selectedUpcoming) return;
                 try {
-                  await startWorkFromUpcoming(selectedUpcoming, effectiveUserId);
+                  await startWorkFromUpcoming(selectedUpcoming, effectiveUserId ?? undefined);
                   qc.invalidateQueries({ queryKey: ["work_logs"] });
                   qc.invalidateQueries({ queryKey: ["upcoming_works"] });
                   qc.invalidateQueries({ queryKey: ["catatan_kerja"] });
@@ -2343,7 +2343,7 @@ RINGKASAN MODUL SIDEBAR:
                     tenggat: newUpcomingTenggat || null,
                     status: "direncanakan",
                   },
-                  effectiveUserId,
+                  effectiveUserId ?? undefined,
                 );
                 qc.invalidateQueries({ queryKey: ["upcoming_works"] });
                 qc.invalidateQueries({ queryKey: ["pekerjaan_mendatang"] });

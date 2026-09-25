@@ -48,12 +48,12 @@ export function parseImportRows(rows: Record<string, unknown>[]): ImportRow[] {
         value,
       ]),
     );
-    const judul = text(normalized.judul);
-    const tanggal = excelDate(normalized.tanggal);
-    const status = (text(normalized.status) || "belum_mulai") as WorkLogStatus;
-    const prioritas = (text(normalized.prioritas) || "sedang") as WorkLogPriority;
-    const progress = Number(normalized.progress ?? (status === "selesai" ? 100 : 0));
-    const durasi = Number(normalized.durasi_menit ?? 0);
+    const judul = text(normalized["judul"]);
+    const tanggal = excelDate(normalized["tanggal"]);
+    const status = (text(normalized["status"]) || "belum_mulai") as WorkLogStatus;
+    const prioritas = (text(normalized["prioritas"]) || "sedang") as WorkLogPriority;
+    const progress = Number(normalized["progress"] ?? (status === "selesai" ? 100 : 0));
+    const durasi = Number(normalized["durasi_menit"] ?? 0);
     const errors: string[] = [];
     if (!judul) errors.push("judul wajib diisi");
     if (!/^\d{4}-\d{2}-\d{2}$/.test(tanggal)) errors.push("tanggal harus YYYY-MM-DD");
@@ -64,21 +64,21 @@ export function parseImportRows(rows: Record<string, unknown>[]): ImportRow[] {
     if (!Number.isInteger(durasi) || durasi < 0) errors.push("durasi harus bilangan positif");
     const payload: WorkLogPayload = {
       judul,
-      deskripsi: text(normalized.deskripsi),
+      deskripsi: text(normalized["deskripsi"]),
       tanggal,
-      waktu_mulai: text(normalized.waktu_mulai) || null,
-      waktu_selesai: text(normalized.waktu_selesai) || null,
+      waktu_mulai: text(normalized["waktu_mulai"]) || null,
+      waktu_selesai: text(normalized["waktu_selesai"]) || null,
       durasi_menit: durasi,
       status,
       progress,
-      kategori: text(normalized.kategori) || "Lainnya",
+      kategori: text(normalized["kategori"]) || "Lainnya",
       prioritas,
-      tags: text(normalized.tags)
+      tags: text(normalized["tags"])
         .split(",")
         .map((tag) => tag.trim())
         .filter(Boolean),
-      link_url: text(normalized.link_url) || null,
-      catatan_hasil: text(normalized.catatan_hasil) || null,
+      link_url: text(normalized["link_url"]) || null,
+      catatan_hasil: text(normalized["catatan_hasil"]) || null,
     };
     return errors.length
       ? { row: index + 2, error: errors.join(", ") }
