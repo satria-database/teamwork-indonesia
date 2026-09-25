@@ -276,7 +276,7 @@ export async function syncLandingConfigFromCloud(): Promise<LandingPageConfig> {
   const current = getLandingConfig();
   try {
     const { data } = await supabase.auth.getUser();
-    const cloudConfig = data?.user?.user_metadata?.landing_page_config;
+    const cloudConfig = data?.user?.user_metadata?.["landing_page_config"];
     if (cloudConfig) {
       const merged = getSafeLandingConfig({ ...current, ...cloudConfig });
       if (typeof window !== "undefined") {

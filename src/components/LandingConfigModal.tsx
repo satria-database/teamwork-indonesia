@@ -94,7 +94,9 @@ export function LandingConfigModal({
     const targetIndex = direction === "up" ? index - 1 : index + 1;
     if (targetIndex < 0 || targetIndex >= order.length) return;
     const temp = order[index];
-    order[index] = order[targetIndex];
+    const target = order[targetIndex];
+    if (!temp || !target) return;
+    order[index] = target;
     order[targetIndex] = temp;
     setDraft({ ...safeDraft, sectionOrder: order });
   };
@@ -258,10 +260,10 @@ export function LandingConfigModal({
                         </span>
                         <div className="min-w-0">
                           <p className="text-xs font-bold text-slate-900 dark:text-white truncate">
-                            {meta?.title || sectionId}
+                            {meta?.label || sectionId}
                           </p>
                           <p className="text-[11px] text-slate-400 truncate">
-                            {meta?.description || ""}
+                            {meta?.desc || ""}
                           </p>
                         </div>
                       </div>

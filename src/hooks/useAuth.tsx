@@ -76,8 +76,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const value = useMemo<AuthValue>(() => {
     const meta = session?.user?.user_metadata as Record<string, unknown> | undefined;
     const accountType: AccountType =
-      (meta?.account_type as AccountType) === "invited" ? "invited" : "independent";
-    const parentUserId = (meta?.parent_user_id as string | null) ?? null;
+      (meta?.["account_type"] as AccountType) === "invited" ? "invited" : "independent";
+    const parentUserId = (meta?.["parent_user_id"] as string | null) ?? null;
     const ownId = session?.user.id ?? null;
     const effectiveUserId = accountType === "invited" ? parentUserId : ownId;
 

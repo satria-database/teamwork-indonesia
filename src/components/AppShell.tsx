@@ -198,7 +198,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             {/* User Profile Card */}
             <div className="flex flex-col items-center text-center pt-2">
               <UserAvatar
-                avatarUrl={profile?.avatar_url}
+                avatarUrl={profile?.avatar_url ?? null}
                 nama={displayName}
                 className="size-20 shadow-xs"
                 status="online"
