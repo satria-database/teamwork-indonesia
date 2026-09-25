@@ -73,7 +73,9 @@ function TataLetakLandingPage() {
     if (index <= 0) return;
     const newOrder = [...config.sectionOrder];
     const temp = newOrder[index - 1];
-    newOrder[index - 1] = newOrder[index];
+    const current = newOrder[index];
+    if (!temp || !current) return;
+    newOrder[index - 1] = current;
     newOrder[index] = temp;
     setConfig((prev) => ({ ...prev, sectionOrder: newOrder }));
   };
@@ -83,7 +85,9 @@ function TataLetakLandingPage() {
     if (index >= config.sectionOrder.length - 1) return;
     const newOrder = [...config.sectionOrder];
     const temp = newOrder[index + 1];
-    newOrder[index + 1] = newOrder[index];
+    const current = newOrder[index];
+    if (!temp || !current) return;
+    newOrder[index + 1] = current;
     newOrder[index] = temp;
     setConfig((prev) => ({ ...prev, sectionOrder: newOrder }));
   };

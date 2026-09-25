@@ -321,8 +321,8 @@ function CurriculumVitaePage() {
           if (payload.new && typeof payload.new === "object") {
             const p = payload.new as Record<string, unknown>;
             if (realtimeSyncWithDashboard) {
-              const fullName = typeof p.full_name === "string" ? p.full_name.trim() : "";
-              const jobTitle = typeof p.job_title === "string" ? p.job_title.trim() : "";
+              const fullName = typeof p["full_name"] === "string" ? p["full_name"].trim() : "";
+              const jobTitle = typeof p["job_title"] === "string" ? p["job_title"].trim() : "";
               setCv((prev) => ({
                 ...prev,
                 nama_lengkap: fullName || prev.nama_lengkap,
@@ -1471,7 +1471,7 @@ function CurriculumVitaePage() {
               </p>
               <Button
                 type="button"
-                onClick={() => applyParsedCV(createDefaultCVForUser(user?.email, profile))}
+                onClick={() => applyParsedCV(createDefaultCVForUser(user?.email, profile ?? undefined))}
                 className="w-full rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold h-8 gap-1.5 cursor-pointer mt-1"
               >
                 <Check className="size-3.5" />

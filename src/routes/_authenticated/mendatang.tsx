@@ -87,14 +87,14 @@ function Mendatang() {
           status: statusFilter,
           prioritas: prioritasFilter,
         },
-        effectiveUserId,
+        effectiveUserId ?? undefined,
       ),
   });
 
   // Fetch Work Logs to see relationships
   const { data: workLogs = [] } = useQuery({
     queryKey: ["work_logs", "relation_lookup"],
-    queryFn: () => fetchWorkLogs(undefined, effectiveUserId),
+    queryFn: () => fetchWorkLogs(undefined, effectiveUserId ?? undefined),
   });
 
   // Summary Metrics
@@ -159,7 +159,7 @@ function Mendatang() {
             prioritas: formPrioritas,
             status: formStatus,
           },
-          effectiveUserId,
+          effectiveUserId ?? undefined,
         );
         toast.success("Rencana pekerjaan baru berhasil ditambahkan");
       }
@@ -195,7 +195,7 @@ function Mendatang() {
   const handleStartWork = async (item: UpcomingWork) => {
     setStartingId(item.id);
     try {
-      await startWorkFromUpcoming(item, effectiveUserId);
+      await startWorkFromUpcoming(item, effectiveUserId ?? undefined);
       qc.invalidateQueries({ queryKey: ["pekerjaan_mendatang"] });
       qc.invalidateQueries({ queryKey: ["upcoming_works"] });
       qc.invalidateQueries({ queryKey: ["work_logs"] });
