@@ -65,6 +65,7 @@ export default function LandingPage() {
   const [copiedEmail, setCopiedEmail] = useState(false);
   const [landingConfig, setLandingConfig] = useState<LandingPageConfig>(DEFAULT_LANDING_CONFIG);
   const [configModalOpen, setConfigModalOpen] = useState(false);
+  const activeUserName = profile?.full_name || user?.email;
 
   // CV data state
   const [cvData, setCvData] = useState<CVData>(DEFAULT_CV_SATRIA);
@@ -123,7 +124,7 @@ export default function LandingPage() {
 
       const baseCV =
         landingConfig.cvSource === "active_user" && user
-          ? createDefaultCVForUser(user.email, profile)
+          ? createDefaultCVForUser(user.email, profile ?? undefined)
           : DEFAULT_CV_SATRIA;
 
       if (cv) {
@@ -686,9 +687,7 @@ export default function LandingPage() {
         availableWorkLogs={[]}
         workLogs={[]}
         {...(user?.email ? { activeUserEmail: user.email } : {})}
-        {...(profile?.full_name || user?.email
-          ? { activeUserName: profile?.full_name || user?.email }
-          : {})}
+        {...(activeUserName ? { activeUserName } : {})}
       />
     </div>
   );
