@@ -147,13 +147,14 @@
 }
 
 @media print {
-  @page {
+  @page cv-a4 {
     size: A4 portrait;
     margin: 12mm;
   }
 
   body:has(#printable-cv) {
-    background: var(--background);
+    --cv-print-paper: oklch(1 0 0);
+    background: var(--cv-print-paper) !important;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
@@ -168,7 +169,7 @@
     overflow: visible !important;
     margin: 0 !important;
     padding: 0 !important;
-    background: var(--background) !important;
+    background: var(--cv-print-paper) !important;
   }
 
   body:has(#printable-cv) .app-sidebar,
@@ -185,6 +186,7 @@
   }
 
   #printable-cv {
+    page: cv-a4;
     box-sizing: border-box;
     width: 100% !important;
     max-width: none !important;
@@ -192,8 +194,8 @@
     padding: 0 !important;
     border: 0 !important;
     box-shadow: none !important;
-    background: var(--background) !important;
-    color: var(--foreground) !important;
+    background: var(--cv-print-paper) !important;
+    color: var(--sidebar-foreground) !important;
     font-size: 11px;
   }
 
