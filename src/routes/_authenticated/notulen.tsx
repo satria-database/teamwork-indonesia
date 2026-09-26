@@ -6,11 +6,12 @@ import { Trash2, Plus, Users, Calendar, CheckSquare, FileText } from "lucide-rea
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/hooks/useAuth";
 import { CatatanViewer, PageHeader } from "@/components/AppShell";
+import { pageHead } from "@/lib/pageHead";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 
-export const Route = createFileRoute("/_authenticated/notulen")({ component: Notulen });
+export const Route = createFileRoute("/_authenticated/notulen")({ head: () => pageHead("Notulen", "Catat dan tinjau hasil rapat di NOURA."), component: Notulen });
 
 type Item = {
   id: string;

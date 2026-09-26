@@ -34,6 +34,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import type { WorkLog } from "@/lib/workLogs";
 import { PageHeader } from "@/components/AppShell";
+import { pageHead } from "@/lib/pageHead";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -49,6 +50,7 @@ import {
 } from "@/components/ui/dialog";
 
 export const Route = createFileRoute("/_authenticated/cv")({
+  head: () => pageHead("Curriculum Vitae", "Kelola dan cetak curriculum vitae pribadi dalam format A4."),
   component: CurriculumVitaePage,
 });
 

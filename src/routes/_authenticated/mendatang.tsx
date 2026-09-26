@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { CatatanViewer, PageHeader } from "@/components/AppShell";
+import { pageHead } from "@/lib/pageHead";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -52,7 +53,7 @@ import {
 } from "@/lib/upcomingWork";
 import { fetchWorkLogs, startWorkFromUpcoming, type WorkLog } from "@/lib/workLogs";
 
-export const Route = createFileRoute("/_authenticated/mendatang")({ component: Mendatang });
+export const Route = createFileRoute("/_authenticated/mendatang")({ head: () => pageHead("Pekerjaan Mendatang", "Pantau rencana pekerjaan yang akan datang di NOURA."), component: Mendatang });
 
 function Mendatang() {
   const { isAdmin, user, effectiveUserId } = useAuth();
