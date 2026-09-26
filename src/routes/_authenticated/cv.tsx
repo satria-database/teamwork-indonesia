@@ -551,7 +551,7 @@ function CurriculumVitaePage() {
   };
 
   return (
-    <div className="space-y-4 sm:space-y-6 w-full pb-12">
+    <div className="cv-page space-y-4 sm:space-y-6 w-full pb-12">
       {/* Header Halaman (Disembunyikan saat cetak) */}
       <div className="print:hidden space-y-4">
         <PageHeader

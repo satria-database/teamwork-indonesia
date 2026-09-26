@@ -145,3 +145,86 @@
     color: var(--color-foreground);
   }
 }
+
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 12mm;
+  }
+
+  body:has(#printable-cv) {
+    background: var(--background);
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  body:has(#printable-cv) .app-shell,
+  body:has(#printable-cv) .app-shell-inner,
+  body:has(#printable-cv) .app-main {
+    display: block !important;
+    height: auto !important;
+    min-height: 0 !important;
+    width: 100% !important;
+    overflow: visible !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: var(--background) !important;
+  }
+
+  body:has(#printable-cv) .app-sidebar,
+  body:has(#printable-cv) .app-mobile-header,
+  body:has(#printable-cv) .app-mobile-nav,
+  body:has(#printable-cv) .cv-page > :not(#printable-cv) {
+    display: none !important;
+  }
+
+  body:has(#printable-cv) .cv-page {
+    width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  #printable-cv {
+    box-sizing: border-box;
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    background: var(--background) !important;
+    color: var(--foreground) !important;
+    font-size: 11px;
+  }
+
+  #printable-cv > * + * {
+    margin-top: 4mm !important;
+  }
+
+  #printable-cv > :first-child {
+    padding-bottom: 4mm !important;
+  }
+
+  #printable-cv .space-y-5 > * + * {
+    margin-top: 3mm !important;
+  }
+
+  #printable-cv .space-y-4 > * + * {
+    margin-top: 2mm !important;
+  }
+
+  #printable-cv li {
+    break-inside: avoid;
+  }
+
+  #printable-cv h2,
+  #printable-cv h3 {
+    break-after: avoid;
+  }
+
+  #printable-cv .space-y-5 > div,
+  #printable-cv .space-y-3 > div,
+  #printable-cv .grid > div {
+    break-inside: avoid;
+  }
+}
