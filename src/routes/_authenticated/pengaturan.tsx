@@ -18,6 +18,7 @@ import { useProfile } from "@/hooks/useProfile";
 import { useTheme, type ThemeMode } from "@/hooks/useTheme";
 import { UserAvatar } from "@/components/UserAvatar";
 import { PageHeader } from "@/components/AppShell";
+import { pageHead } from "@/lib/pageHead";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -32,6 +33,7 @@ import {
 import { supabase } from "@/lib/supabase";
 
 export const Route = createFileRoute("/_authenticated/pengaturan")({
+  head: () => pageHead("Pengaturan", "Atur profil dan preferensi akun NOURA."),
   component: PengaturanPage,
 });
 

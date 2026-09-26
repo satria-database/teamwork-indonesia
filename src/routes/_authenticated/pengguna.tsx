@@ -6,11 +6,12 @@ import { KeyRound, UserPlus, Users, ShieldCheck, Mail, Lock, Eye, UserCheck } fr
 import { supabase, EMAIL_ADMIN_PERTAMA } from "@/lib/supabase";
 import { useAuth } from "@/hooks/useAuth";
 import { PageHeader } from "@/components/AppShell";
+import { pageHead } from "@/lib/pageHead";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-export const Route = createFileRoute("/_authenticated/pengguna")({ component: Pengguna });
+export const Route = createFileRoute("/_authenticated/pengguna")({ head: () => pageHead("Pengguna dan Akun", "Kelola pengguna dan akses akun NOURA."), component: Pengguna });
 
 type Profil = { id: string; email: string; nama: string | null };
 type PeranBaris = { user_id: string; role: "admin" | "viewer" };

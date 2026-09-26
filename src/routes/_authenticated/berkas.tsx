@@ -29,6 +29,7 @@ import {
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/hooks/useAuth";
 import { CatatanViewer, PageHeader } from "@/components/AppShell";
+import { pageHead } from "@/lib/pageHead";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -49,6 +50,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 export const Route = createFileRoute("/_authenticated/berkas")({
+  head: () => pageHead("Berkas", "Kelola dan temukan berkas kerja di NOURA."),
   component: Berkas,
 });
 

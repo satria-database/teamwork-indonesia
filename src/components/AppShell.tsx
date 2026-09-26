@@ -83,10 +83,10 @@ export function AppShell({ children }: { children: ReactNode }) {
   const userTitle = [profile?.job_title, isAdmin ? "Admin" : "Viewer"].filter(Boolean).join(" • ");
 
   return (
-    <div className="h-dvh w-full overflow-hidden bg-[#f8fafc] dark:bg-[#0f172a] transition-colors duration-300 font-sans">
-      <div className="flex h-dvh w-full flex-col overflow-hidden bg-[#f8fafc] transition-colors duration-300 dark:bg-[#0f172a] md:flex-row">
+    <div className="app-shell h-dvh w-full overflow-hidden bg-[#f8fafc] dark:bg-[#0f172a] transition-colors duration-300 font-sans">
+      <div className="app-shell-inner flex h-dvh w-full flex-col overflow-hidden bg-[#f8fafc] transition-colors duration-300 dark:bg-[#0f172a] md:flex-row">
         {/* Mobile Header Bar */}
-        <div className="flex md:hidden items-center justify-between px-3 py-2.5 border-b border-slate-200/70 dark:border-slate-800 bg-white dark:bg-slate-900">
+        <div className="app-mobile-header flex md:hidden items-center justify-between px-3 py-2.5 border-b border-slate-200/70 dark:border-slate-800 bg-white dark:bg-slate-900">
           <div className="flex items-center gap-2.5">
             <Link to="/dasbor" className="flex items-center" aria-label="NOURA">
               <NouraLogo size="md" />
@@ -116,7 +116,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
         {/* Mobile Navigation Drawer */}
         {mobileOpen && (
-          <div className="md:hidden flex flex-col gap-2 p-3 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-lg animate-in fade-in slide-in-from-top-3 duration-200">
+          <div className="app-mobile-nav md:hidden flex flex-col gap-2 p-3 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-lg animate-in fade-in slide-in-from-top-3 duration-200">
             <div className="px-2 py-1 text-xs font-semibold uppercase tracking-wider text-slate-400">
               Navigasi Home
             </div>
@@ -186,7 +186,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         )}
 
         {/* Desktop Left Sidebar matching the reference design */}
-        <aside className="hidden md:flex md:sticky md:top-0 h-dvh w-64 xl:w-72 shrink-0 flex-col justify-between gap-6 overflow-y-auto overscroll-contain custom-scrollbar border-r border-slate-200/70 p-5 xl:p-7 dark:border-slate-800/80">
+        <aside className="app-sidebar hidden md:flex md:sticky md:top-0 h-dvh w-64 xl:w-72 shrink-0 flex-col justify-between gap-6 overflow-y-auto overscroll-contain custom-scrollbar border-r border-slate-200/70 p-5 xl:p-7 dark:border-slate-800/80">
           <div className="space-y-6">
             <Link
               to="/dasbor"
@@ -381,7 +381,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         </aside>
 
         {/* Main Content Viewport */}
-        <main className="min-w-0 flex-1 overflow-y-auto p-4 sm:p-6 lg:p-7 custom-scrollbar">
+        <main className="app-main min-w-0 flex-1 overflow-y-auto p-4 sm:p-6 lg:p-7 custom-scrollbar">
           {children}
         </main>
       </div>
