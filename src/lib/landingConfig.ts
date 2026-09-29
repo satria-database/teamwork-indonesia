@@ -55,6 +55,11 @@ export interface LandingPageConfig {
   heroJobSectionTitle: string;
   heroJobResponsibilities: string[];
   heroAvatarUrl?: string | null;
+  cvAvatarUrl?: string | null;
+  contactAvatarUrl?: string | null;
+  heroAvatarAdjust?: PhotoAdjust | null;
+  cvAvatarAdjust?: PhotoAdjust | null;
+  contactAvatarAdjust?: PhotoAdjust | null;
 
   // 4. Konfigurasi Catatan Kerja di Landing Page
   workLogsFilter: "semua" | "selesai" | "berjalan";
@@ -99,6 +104,26 @@ export interface LandingPageConfig {
   contactOperatingHours: string;
 }
 
+export interface PhotoAdjust {
+  x: number;
+  y: number;
+  zoom: number;
+}
+
+export const DEFAULT_PHOTO_ADJUST: PhotoAdjust = { x: 50, y: 50, zoom: 1 };
+
+function getSafePhotoAdjust(raw: unknown): PhotoAdjust | null {
+  if (!raw || typeof raw !== "object") return null;
+  const { x, y, zoom } = raw as Partial<PhotoAdjust>;
+  const num = (v: unknown, fallback: number, min: number, max: number) =>
+    typeof v === "number" && Number.isFinite(v) ? Math.min(max, Math.max(min, v)) : fallback;
+  return {
+    x: num(x, 50, 0, 100),
+    y: num(y, 50, 0, 100),
+    zoom: num(zoom, 1, 1, 3),
+  };
+}
+
 export interface LandingYearWorkItem {
   id: string;
   title: string;
@@ -136,6 +161,8 @@ export const DEFAULT_LANDING_CONFIG: LandingPageConfig = {
     "Menganalisis harga tahunan terbaru atau harga terakhir yang digunakan untuk setiap item dalam proses Volume Pooling sebagai dasar penyusunan Engineer’s Estimate (HPP).",
   ],
   heroAvatarUrl: null,
+  cvAvatarUrl: null,
+  contactAvatarUrl: null,
 
   workLogsFilter: "semua",
   workLogsLimit: 4,
@@ -246,6 +273,11 @@ export function getSafeLandingConfig(raw?: Partial<LandingPageConfig> | null): L
         ? raw.heroJobResponsibilities.filter((r) => typeof r === "string" && r.trim().length > 0)
         : DEFAULT_LANDING_CONFIG.heroJobResponsibilities,
     heroAvatarUrl: raw?.heroAvatarUrl ?? null,
+    cvAvatarUrl: raw?.cvAvatarUrl ?? null,
+    contactAvatarUrl: raw?.contactAvatarUrl ?? null,
+    heroAvatarAdjust: getSafePhotoAdjust(raw?.heroAvatarAdjust),
+    cvAvatarAdjust: getSafePhotoAdjust(raw?.cvAvatarAdjust),
+    contactAvatarAdjust: getSafePhotoAdjust(raw?.contactAvatarAdjust),
     showContactSection:
       typeof raw?.showContactSection === "boolean"
         ? raw.showContactSection
