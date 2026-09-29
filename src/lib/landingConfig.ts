@@ -102,6 +102,8 @@ export interface LandingPageConfig {
   contactWhatsApp: string;
   contactLinkedIn: string;
   contactOperatingHours: string;
+
+  updatedAt?: number;
 }
 
 export interface PhotoAdjust {
@@ -329,24 +331,38 @@ export function getLandingConfig(): LandingPageConfig {
   return DEFAULT_LANDING_CONFIG;
 }
 
+const PHOTO_URL_FIELDS = ["heroAvatarUrl", "cvAvatarUrl", "contactAvatarUrl"] as const;
+
+// Base64 photos are too large for auth user metadata (it is embedded in the JWT),
+// so they only live in localStorage; public Storage URLs are synced to the cloud.
+function toCloudPayload(config: LandingPageConfig): Partial<LandingPageConfig> {
+  const payload: Partial<LandingPageConfig> = { ...config };
+  for (const field of PHOTO_URL_FIELDS) {
+    if (payload[field]?.startsWith("data:")) delete payload[field];
+  }
+  return payload;
+}
+
 export async function saveLandingConfig(config: LandingPageConfig): Promise<void> {
-  const safe = getSafeLandingConfig(config);
+  const safe = getSafeLandingConfig({ ...config, updatedAt: Date.now() });
   if (typeof window !== "undefined") {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(safe));
-      window.dispatchEvent(new CustomEvent("noura_landing_config_updated", { detail: safe }));
     } catch {
-      // ignore
+      throw new Error(
+        "Penyimpanan browser penuh. Gunakan foto berukuran lebih kecil lalu coba lagi.",
+      );
     }
+    window.dispatchEvent(new CustomEvent("noura_landing_config_updated", { detail: safe }));
   }
 
-  // Sync to Supabase Auth User Metadata if user is logged in
   try {
     const { data } = await supabase.auth.getUser();
     if (data?.user) {
-      await supabase.auth.updateUser({
-        data: { landing_page_config: safe },
+      const { error } = await supabase.auth.updateUser({
+        data: { landing_page_config: toCloudPayload(safe) },
       });
+      if (error) console.warn("Sinkronisasi cloud landing config gagal:", error.message);
     }
   } catch (err) {
     console.warn("Sinkronisasi cloud landing config:", err);
@@ -355,14 +371,24 @@ export async function saveLandingConfig(config: LandingPageConfig): Promise<void
 
 /**
  * Memuat konfigurasi dari cloud/metadata Supabase jika ada, lalu menyelaraskan dengan localStorage.
+ * Versi yang paling baru (updatedAt) yang dipakai agar perubahan lokal tidak tertimpa data lama.
  */
 export async function syncLandingConfigFromCloud(): Promise<LandingPageConfig> {
-  const current = getLandingConfig();
   try {
     const { data } = await supabase.auth.getUser();
-    const cloudConfig = data?.user?.user_metadata?.["landing_page_config"];
+    const cloudConfig = data?.user?.user_metadata?.["landing_page_config"] as
+      | Partial<LandingPageConfig>
+      | undefined;
+    const current = getLandingConfig();
     if (cloudConfig) {
+      const localIsNewer = (current.updatedAt ?? 0) > (cloudConfig.updatedAt ?? 0);
+      if (localIsNewer) return current;
       const merged = getSafeLandingConfig({ ...current, ...cloudConfig });
+      for (const field of PHOTO_URL_FIELDS) {
+        if (!(field in cloudConfig) && current[field]?.startsWith("data:")) {
+          merged[field] = current[field];
+        }
+      }
       if (typeof window !== "undefined") {
         try {
           localStorage.setItem(STORAGE_KEY, JSON.stringify(merged));
@@ -376,5 +402,5 @@ export async function syncLandingConfigFromCloud(): Promise<LandingPageConfig> {
   } catch {
     // ignore
   }
-  return current;
+  return getLandingConfig();
 }
