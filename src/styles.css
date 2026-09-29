@@ -1,6 +1,6 @@
 @import "tailwindcss" source(none);
-@source "../src";
 @import "tw-animate-css";
+@source "../src";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -19,6 +19,9 @@
  */
 
 @theme inline {
+  --font-sans:
+    "Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    Roboto, "Helvetica Neue", Arial, sans-serif;
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -140,93 +143,138 @@
     border-color: var(--color-border);
   }
 
+  html,
   body {
+    font-family:
+      "Plus Jakarta Sans",
+      ui-sans-serif,
+      system-ui,
+      -apple-system,
+      BlinkMacSystemFont,
+      "Segoe UI",
+      Roboto,
+      "Helvetica Neue",
+      Arial,
+      sans-serif;
     background-color: var(--color-background);
     color: var(--color-foreground);
   }
 }
 
 @media print {
-  @page cv-a4 {
+  @page {
     size: A4 portrait;
-    margin: 12mm;
+    margin: 14mm 16mm 14mm 16mm;
   }
 
-  body:has(#printable-cv) {
-    --cv-print-paper: oklch(1 0 0);
-    background: var(--cv-print-paper) !important;
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
+  /* Force background colors and exact print fidelity */
+  *,
+  *::before,
+  *::after {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 
-  body:has(#printable-cv) .app-shell,
-  body:has(#printable-cv) .app-shell-inner,
-  body:has(#printable-cv) .app-main {
-    display: block !important;
+  /* Hide EVERYTHING from the application chrome: sidebar, headers, footers, toolbars */
+  aside,
+  header,
+  nav,
+  .app-sidebar,
+  .app-mobile-header,
+  .app-mobile-nav,
+  [data-sonner-toaster],
+  .print\:hidden {
+    display: none !important;
+    visibility: hidden !important;
+    width: 0 !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+  }
+
+  /* Reset body and wrapper constraints */
+  html,
+  body {
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    font-family:
+      "Plus Jakarta Sans",
+      ui-sans-serif,
+      system-ui,
+      -apple-system,
+      BlinkMacSystemFont,
+      "Segoe UI",
+      Roboto,
+      "Helvetica Neue",
+      Arial,
+      sans-serif !important;
     height: auto !important;
     min-height: 0 !important;
-    width: 100% !important;
+    max-height: none !important;
     overflow: visible !important;
+  }
+
+  .app-shell,
+  .app-shell-inner,
+  .app-main,
+  .cv-page {
+    display: block !important;
     margin: 0 !important;
     padding: 0 !important;
-    background: var(--cv-print-paper) !important;
-  }
-
-  body:has(#printable-cv) .app-sidebar,
-  body:has(#printable-cv) .app-mobile-header,
-  body:has(#printable-cv) .app-mobile-nav,
-  body:has(#printable-cv) .cv-page > :not(#printable-cv) {
-    display: none !important;
-  }
-
-  body:has(#printable-cv) .cv-page {
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
     width: 100% !important;
-    padding: 0 !important;
-    margin: 0 !important;
+    background: #ffffff !important;
+    border: none !important;
   }
 
+  /* Printable CV container: exactly matches the A4 PDF page dimensions */
   #printable-cv {
-    page: cv-a4;
-    box-sizing: border-box;
+    display: block !important;
+    position: relative !important;
     width: 100% !important;
     max-width: none !important;
     margin: 0 !important;
     padding: 0 !important;
-    border: 0 !important;
+    border: none !important;
+    border-radius: 0 !important;
     box-shadow: none !important;
-    background: var(--cv-print-paper) !important;
-    color: var(--sidebar-foreground) !important;
-    font-size: 11px;
+    background: #ffffff !important;
+    color: #0f172a !important;
+    font-family:
+      "Plus Jakarta Sans",
+      ui-sans-serif,
+      system-ui,
+      -apple-system,
+      BlinkMacSystemFont,
+      "Segoe UI",
+      Roboto,
+      "Helvetica Neue",
+      Arial,
+      sans-serif !important;
+    font-size: 10pt !important;
+    line-height: 1.35 !important;
   }
 
-  #printable-cv > * + * {
-    margin-top: 4mm !important;
+  /* Prevent awkward page breaks inside CV items */
+  .cv-item,
+  .cv-avoid-break {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
   }
 
-  #printable-cv > :first-child {
-    padding-bottom: 4mm !important;
+  .cv-section-title {
+    break-after: avoid !important;
+    page-break-after: avoid !important;
   }
 
-  #printable-cv .space-y-5 > * + * {
-    margin-top: 3mm !important;
-  }
-
-  #printable-cv .space-y-4 > * + * {
-    margin-top: 2mm !important;
-  }
-
-  #printable-cv li {
-    break-inside: avoid;
-  }
-
-  #printable-cv h2,
-  #printable-cv h3 {
-    break-after: avoid;
-  }
-
-  #printable-cv .space-y-5 > div,
-  #printable-cv .space-y-3 > div,
-  #printable-cv .grid > div {
-    break-inside: avoid;
+  ul,
+  li {
+    break-inside: avoid !important;
   }
 }

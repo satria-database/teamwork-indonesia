@@ -438,9 +438,23 @@ create policy "cv_kelola_sendiri" on public.curriculum_vitae
 grant select, insert, update, delete on public.curriculum_vitae to authenticated;
 grant all on public.curriculum_vitae to service_role;
 
--- 6.1 Foto Profil CV
+-- 6.1 Foto Profil CV & Kustomisasi Judul Seksi
 alter table public.curriculum_vitae add column if not exists foto_url text;
 alter table public.curriculum_vitae add column if not exists foto_position text default 'center center';
+alter table public.curriculum_vitae add column if not exists linkedin text;
+alter table public.curriculum_vitae add column if not exists sertifikasi jsonb default '[]'::jsonb;
+alter table public.curriculum_vitae add column if not exists spesialisasi_kompetensi jsonb default '[]'::jsonb;
+alter table public.curriculum_vitae add column if not exists judul_tentang_saya text default 'Tentang Saya';
+alter table public.curriculum_vitae add column if not exists judul_pendidikan text default '1. Riwayat Pendidikan';
+alter table public.curriculum_vitae add column if not exists judul_pengalaman text default '2. Pengalaman Kerja';
+alter table public.curriculum_vitae add column if not exists judul_keahlian text default '3. Keahlian Utama';
+alter table public.curriculum_vitae add column if not exists judul_kompetensi text default '4. Spesialisasi Kompetensi';
+
+-- Izin baca anon untuk tampilan depan / publik
+grant select on public.curriculum_vitae to anon;
+drop policy if exists "cv_baca_publik" on public.curriculum_vitae;
+create policy "cv_baca_publik" on public.curriculum_vitae
+  for select to anon using (true);
 
 -- 7. Work Checklists (Checklist Pekerjaan) ---------------------------
 -- Helper: cek kepemilikan catatan pekerjaan melalui work_logs ATAU catatan_kerja

@@ -5,9 +5,7 @@
   "auth": {
     "type": "oauth",
     "issuer": "https://olvogyukyydooiuzljml.supabase.co/auth/v1",
-    "accepted_audiences": [
-      "authenticated"
-    ]
+    "accepted_audiences": ["authenticated"]
   },
   "mcp": {
     "server": {
@@ -30,13 +28,7 @@
           "properties": {
             "jenis": {
               "type": "string",
-              "enum": [
-                "tugas",
-                "catatan_kerja",
-                "pekerjaan_mendatang",
-                "notulen",
-                "berkas"
-              ]
+              "enum": ["tugas", "catatan_kerja", "pekerjaan_mendatang", "notulen", "berkas"]
             },
             "limit": {
               "type": "integer",
@@ -45,9 +37,7 @@
               "default": 20
             }
           },
-          "required": [
-            "jenis"
-          ],
+          "required": ["jenis"],
           "additionalProperties": false,
           "$schema": "http://json-schema.org/draft-07/schema#"
         },
@@ -80,17 +70,11 @@
             },
             "prioritas": {
               "type": "string",
-              "enum": [
-                "rendah",
-                "sedang",
-                "tinggi"
-              ],
+              "enum": ["rendah", "sedang", "tinggi"],
               "default": "sedang"
             }
           },
-          "required": [
-            "judul"
-          ],
+          "required": ["judul"],
           "additionalProperties": false,
           "$schema": "http://json-schema.org/draft-07/schema#"
         },
@@ -118,9 +102,7 @@
               "default": true
             }
           },
-          "required": [
-            "id"
-          ],
+          "required": ["id"],
           "additionalProperties": false,
           "$schema": "http://json-schema.org/draft-07/schema#"
         },
@@ -154,9 +136,7 @@
               "minimum": 0
             }
           },
-          "required": [
-            "judul"
-          ],
+          "required": ["judul"],
           "additionalProperties": false,
           "$schema": "http://json-schema.org/draft-07/schema#"
         },
@@ -187,17 +167,11 @@
             },
             "status": {
               "type": "string",
-              "enum": [
-                "direncanakan",
-                "berjalan",
-                "selesai"
-              ],
+              "enum": ["direncanakan", "berjalan", "selesai"],
               "default": "direncanakan"
             }
           },
-          "required": [
-            "judul"
-          ],
+          "required": ["judul"],
           "additionalProperties": false,
           "$schema": "http://json-schema.org/draft-07/schema#"
         },
@@ -233,9 +207,7 @@
               "type": "string"
             }
           },
-          "required": [
-            "judul"
-          ],
+          "required": ["judul"],
           "additionalProperties": false,
           "$schema": "http://json-schema.org/draft-07/schema#"
         },

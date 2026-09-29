@@ -152,9 +152,7 @@ function Masuk() {
             disabled={loading}
             className="w-full rounded-full bg-slate-900 text-white dark:bg-white dark:text-slate-900 hover:bg-slate-800 text-xs font-bold py-2.5 shadow-md flex items-center justify-center gap-2"
           >
-            <span>
-              {loading ? "Memproses…" : "Masuk ke Akun"}
-            </span>
+            <span>{loading ? "Memproses…" : "Masuk ke Akun"}</span>
             <ArrowRight className="size-3.5" />
           </Button>
         </form>

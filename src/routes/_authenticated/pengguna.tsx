@@ -11,7 +11,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-export const Route = createFileRoute("/_authenticated/pengguna")({ head: () => pageHead("Pengguna dan Akun", "Kelola pengguna dan akses akun NOURA."), component: Pengguna });
+export const Route = createFileRoute("/_authenticated/pengguna")({
+  head: () => pageHead("Pengguna dan Akun", "Kelola pengguna dan akses akun NOURA."),
+  component: Pengguna,
+});
 
 type Profil = { id: string; email: string; nama: string | null };
 type PeranBaris = { user_id: string; role: "admin" | "viewer" };

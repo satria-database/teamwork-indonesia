@@ -1,11 +1,6 @@
 import { supabase } from "./supabase";
 
-export type LandingSectionId =
-  | "hero"
-  | "metrics"
-  | "dashboard"
-  | "cv"
-  | "skills";
+export type LandingSectionId = "hero" | "metrics" | "dashboard" | "cv" | "skills";
 
 export const ALL_LANDING_SECTIONS: {
   id: LandingSectionId;
@@ -33,11 +28,7 @@ export const ALL_LANDING_SECTIONS: {
   },
 ];
 
-export const DEFAULT_SECTION_ORDER: LandingSectionId[] = [
-  "hero",
-  "cv",
-  "skills",
-];
+export const DEFAULT_SECTION_ORDER: LandingSectionId[] = ["hero", "cv", "skills"];
 
 export interface LandingPageConfig {
   // 1. Susunan Bagian (Order)
@@ -51,11 +42,19 @@ export interface LandingPageConfig {
   showVerifiedAchievementsInCV: boolean;
   showSkillsSection: boolean;
 
-  // 3. Teks & Kustomisasi Hero
+  // 3. Teks & Kustomisasi Hero (Sesuai Lampiran 2)
   heroTitle: string;
   heroSubtitle: string;
   heroBadgeText: string;
   adminWhatsAppNumber: string;
+  heroName: string;
+  heroIsVerified: boolean;
+  heroCurrentJobTitle: string;
+  heroCurrentCompany: string;
+  heroCurrentProject: string;
+  heroJobSectionTitle: string;
+  heroJobResponsibilities: string[];
+  heroAvatarUrl?: string | null;
 
   // 4. Konfigurasi Catatan Kerja di Landing Page
   workLogsFilter: "semua" | "selesai" | "berjalan";
@@ -88,6 +87,16 @@ export interface LandingPageConfig {
   showYearWorkCards: boolean;
   yearWorkTitle: string;
   yearWorkItems: LandingYearWorkItem[];
+
+  // 8. Seksi Kontak / Mari Terhubung (Bawah Halaman Depan)
+  showContactSection: boolean;
+  contactBadge: string;
+  contactTitle: string;
+  contactSubtitle: string;
+  contactEmail: string;
+  contactWhatsApp: string;
+  contactLinkedIn: string;
+  contactOperatingHours: string;
 }
 
 export interface LandingYearWorkItem {
@@ -108,11 +117,25 @@ export const DEFAULT_LANDING_CONFIG: LandingPageConfig = {
   showVerifiedAchievementsInCV: true,
   showSkillsSection: true,
 
-  heroTitle: "WorkSpace & Portfolio",
-  heroSubtitle:
-    "Catatan pekerjaan, jadwal, dokumen, dan portofolio saya dalam satu tempat.",
+  heroTitle: "Workspace & Portofolio",
+  heroSubtitle: "Catatan pekerjaan, jadwal, dokumen, dan portofolio saya dalam satu tempat.",
   heroBadgeText: "Technical Data Support & Portfolio",
   adminWhatsAppNumber: "081216130661",
+  heroName: "SATRIA NUR ARDIANSYAH",
+  heroIsVerified: false,
+  heroCurrentJobTitle: "Cataloger Elins",
+  heroCurrentCompany: "PT Sonar Persada Manunggal",
+  heroCurrentProject: "Project | PT Semen Indonesia Group",
+  heroJobSectionTitle: "Job saat ini :",
+  heroJobResponsibilities: [
+    "Menganalisis permintaan penambahan item baru berdasarkan standar penamaan yang telah ditetapkan melalui sistem FORCA Cataloguing, kemudian melakukan registrasi Item Number di SAP.",
+    "Melakukan input dan pembaruan data Good Issued berdasarkan data dan standar terbaru untuk memastikan konsistensi dan akurasi data material.",
+    "Meninjau dan memverifikasi datasheet, drawing, dan spesifikasi teknis untuk memastikan data material sesuai dengan kebutuhan operasional.",
+    "Menyusun dan menganalisis data Volume Pooling berdasarkan histori Good Issued per kelompok material sebagai dasar dalam perencanaan kebutuhan material.",
+    "Menyusun Bill of Quantity (BOQ) dan Engineer’s Estimate (Harga Perkiraan Perancang/HPP) sebagai bagian dari proses persiapan pengadaan dan tender.",
+    "Menganalisis harga tahunan terbaru atau harga terakhir yang digunakan untuk setiap item dalam proses Volume Pooling sebagai dasar penyusunan Engineer’s Estimate (HPP).",
+  ],
+  heroAvatarUrl: null,
 
   workLogsFilter: "semua",
   workLogsLimit: 4,
@@ -168,20 +191,26 @@ export const DEFAULT_LANDING_CONFIG: LandingPageConfig = {
       status: "berjalan",
     },
   ],
+
+  showContactSection: true,
+  contactBadge: "HUBUNGI SAYA",
+  contactTitle: "Mari Terhubung",
+  contactSubtitle:
+    "Saya terbuka untuk berbagai peluang kolaborasi, diskusi, atau pertanyaan terkait pekerjaan dan proyek. Jangan ragu untuk menghubungi saya melalui email, WhatsApp, atau LinkedIn.",
+  contactEmail: "satria62317@gmail.com",
+  contactWhatsApp: "081216130661",
+  contactLinkedIn: "linkedin.com/in/satria-nur16",
+  contactOperatingHours: "Senin – Jumat 08.00 – 17.00 WIB (Waktu Indonesia Barat)",
 };
 
 const STORAGE_KEY = "noura_landing_page_config";
 
-export function getSafeLandingConfig(
-  raw?: Partial<LandingPageConfig> | null,
-): LandingPageConfig {
+export function getSafeLandingConfig(raw?: Partial<LandingPageConfig> | null): LandingPageConfig {
   if (!raw) return DEFAULT_LANDING_CONFIG;
 
   // Ensure all valid section IDs are in sectionOrder without duplicate
   let safeOrder = Array.isArray(raw.sectionOrder)
-    ? (raw.sectionOrder.filter((id) =>
-        DEFAULT_SECTION_ORDER.includes(id),
-      ) as LandingSectionId[])
+    ? (raw.sectionOrder.filter((id) => DEFAULT_SECTION_ORDER.includes(id)) as LandingSectionId[])
     : [];
 
   if (safeOrder.length === 0) {
@@ -198,18 +227,45 @@ export function getSafeLandingConfig(
   return {
     ...DEFAULT_LANDING_CONFIG,
     ...raw,
+    heroTitle: raw?.heroTitle?.trim() || DEFAULT_LANDING_CONFIG.heroTitle,
+    heroName: raw?.heroName?.trim() || DEFAULT_LANDING_CONFIG.heroName,
+    heroIsVerified:
+      typeof raw?.heroIsVerified === "boolean"
+        ? raw.heroIsVerified
+        : DEFAULT_LANDING_CONFIG.heroIsVerified,
+    heroCurrentJobTitle:
+      raw?.heroCurrentJobTitle?.trim() || DEFAULT_LANDING_CONFIG.heroCurrentJobTitle,
+    heroCurrentCompany:
+      raw?.heroCurrentCompany?.trim() || DEFAULT_LANDING_CONFIG.heroCurrentCompany,
+    heroCurrentProject:
+      raw?.heroCurrentProject?.trim() || DEFAULT_LANDING_CONFIG.heroCurrentProject,
+    heroJobSectionTitle:
+      raw?.heroJobSectionTitle?.trim() || DEFAULT_LANDING_CONFIG.heroJobSectionTitle,
+    heroJobResponsibilities:
+      Array.isArray(raw?.heroJobResponsibilities) && raw.heroJobResponsibilities.length > 0
+        ? raw.heroJobResponsibilities.filter((r) => typeof r === "string" && r.trim().length > 0)
+        : DEFAULT_LANDING_CONFIG.heroJobResponsibilities,
+    heroAvatarUrl: raw?.heroAvatarUrl ?? null,
+    showContactSection:
+      typeof raw?.showContactSection === "boolean"
+        ? raw.showContactSection
+        : DEFAULT_LANDING_CONFIG.showContactSection,
+    contactBadge: raw?.contactBadge?.trim() || DEFAULT_LANDING_CONFIG.contactBadge,
+    contactTitle: raw?.contactTitle?.trim() || DEFAULT_LANDING_CONFIG.contactTitle,
+    contactSubtitle: raw?.contactSubtitle?.trim() || DEFAULT_LANDING_CONFIG.contactSubtitle,
+    contactEmail: raw?.contactEmail?.trim() || DEFAULT_LANDING_CONFIG.contactEmail,
+    contactWhatsApp: raw?.contactWhatsApp?.trim() || DEFAULT_LANDING_CONFIG.contactWhatsApp,
+    contactLinkedIn: raw?.contactLinkedIn?.trim() || DEFAULT_LANDING_CONFIG.contactLinkedIn,
+    contactOperatingHours:
+      raw?.contactOperatingHours?.trim() || DEFAULT_LANDING_CONFIG.contactOperatingHours,
     sectionOrder: safeOrder,
     visibleDashboardTabs: {
       ...DEFAULT_LANDING_CONFIG.visibleDashboardTabs,
       ...(raw.visibleDashboardTabs || {}),
     },
-    selectedWorkLogIds: Array.isArray(raw.selectedWorkLogIds)
-      ? raw.selectedWorkLogIds
-      : [],
+    selectedWorkLogIds: Array.isArray(raw.selectedWorkLogIds) ? raw.selectedWorkLogIds : [],
     skillsBadges: Array.isArray(raw.skillsBadges) ? raw.skillsBadges : [],
-    specializationItems: Array.isArray(raw.specializationItems)
-      ? raw.specializationItems
-      : [],
+    specializationItems: Array.isArray(raw.specializationItems) ? raw.specializationItems : [],
     yearWorkItems: Array.isArray(raw.yearWorkItems)
       ? raw.yearWorkItems
           .filter((item) => item && typeof item === "object")
@@ -241,16 +297,12 @@ export function getLandingConfig(): LandingPageConfig {
   return DEFAULT_LANDING_CONFIG;
 }
 
-export async function saveLandingConfig(
-  config: LandingPageConfig,
-): Promise<void> {
+export async function saveLandingConfig(config: LandingPageConfig): Promise<void> {
   const safe = getSafeLandingConfig(config);
   if (typeof window !== "undefined") {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(safe));
-      window.dispatchEvent(
-        new CustomEvent("noura_landing_config_updated", { detail: safe }),
-      );
+      window.dispatchEvent(new CustomEvent("noura_landing_config_updated", { detail: safe }));
     } catch {
       // ignore
     }
@@ -282,10 +334,10 @@ export async function syncLandingConfigFromCloud(): Promise<LandingPageConfig> {
       if (typeof window !== "undefined") {
         try {
           localStorage.setItem(STORAGE_KEY, JSON.stringify(merged));
-          window.dispatchEvent(
-            new CustomEvent("noura_landing_config_updated", { detail: merged }),
-          );
-        } catch {}
+          window.dispatchEvent(new CustomEvent("noura_landing_config_updated", { detail: merged }));
+        } catch {
+          // ignore storage error
+        }
       }
       return merged;
     }
@@ -294,4 +346,3 @@ export async function syncLandingConfigFromCloud(): Promise<LandingPageConfig> {
   }
   return current;
 }
-

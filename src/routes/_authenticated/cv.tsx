@@ -50,7 +50,8 @@ import {
 } from "@/components/ui/dialog";
 
 export const Route = createFileRoute("/_authenticated/cv")({
-  head: () => pageHead("Curriculum Vitae", "Kelola dan cetak curriculum vitae pribadi dalam format A4."),
+  head: () =>
+    pageHead("Curriculum Vitae", "Kelola dan cetak curriculum vitae pribadi dalam format A4."),
   component: CurriculumVitaePage,
 });
 
@@ -61,6 +62,7 @@ import {
   type PengalamanKerja,
   type RiwayatPendidikan,
 } from "@/lib/cvData";
+import satriaRedAvatar from "@/assets/images/satria_avatar_red_1790582692896.jpg";
 
 const SQL_SCHEMA_SNIPPET = `-- Jalankan skrip ini di Supabase Dashboard > SQL Editor:
 create table if not exists public.curriculum_vitae (
@@ -98,7 +100,9 @@ function CurriculumVitaePage() {
   const { user, isAdmin, effectiveUserId } = useAuth();
   const { profile } = useProfile();
 
-  const [cv, setCv] = useState<CVData>(() => createDefaultCVForUser(user?.email, profile ?? undefined));
+  const [cv, setCv] = useState<CVData>(() =>
+    createDefaultCVForUser(user?.email, profile ?? undefined),
+  );
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [storageType, setStorageType] = useState<"cloud" | "local">("local");
@@ -106,7 +110,7 @@ function CurriculumVitaePage() {
   const [realtimeSyncWithDashboard, setRealtimeSyncWithDashboard] = useState(true);
   const [lastSyncedAt, setLastSyncedAt] = useState<Date>(new Date());
   const [completedWorkLogs, setCompletedWorkLogs] = useState<
-  Array<{ id: string; judul: string; deskripsi?: string; tanggal: string; kategori?: string }>
+    Array<{ id: string; judul: string; deskripsi?: string; tanggal: string; kategori?: string }>
   >([]);
 
   // Dialog states
@@ -123,7 +127,14 @@ function CurriculumVitaePage() {
     const saved = localStorage.getItem(localKey);
     if (saved) {
       try {
-        setCv(JSON.parse(saved));
+        const parsed = JSON.parse(saved);
+        if (!parsed.foto_url) {
+          parsed.foto_url = satriaRedAvatar;
+        }
+        if (!parsed.linkedin) {
+          parsed.linkedin = "www.linkedin.com/in/satria-nur16";
+        }
+        setCv(parsed);
         return;
       } catch {
         // ignore
@@ -198,6 +209,7 @@ function CurriculumVitaePage() {
             alamat: data.alamat || fallback.alamat,
             telepon: data.telepon || fallback.telepon,
             email: user.email || data.email || fallback.email,
+            linkedin: data.linkedin || fallback.linkedin || "www.linkedin.com/in/satria-nur16",
             tentang_saya: data.tentang_saya || fallback.tentang_saya,
             pengalaman:
               Array.isArray(data.pengalaman) && data.pengalaman.length > 0
@@ -211,8 +223,26 @@ function CurriculumVitaePage() {
               Array.isArray(data.keahlian) && data.keahlian.length > 0
                 ? data.keahlian
                 : fallback.keahlian,
-            foto_url: data.foto_url || fallback.foto_url || null,
+            sertifikasi:
+              Array.isArray(data.sertifikasi) && data.sertifikasi.length > 0
+                ? data.sertifikasi
+                : fallback.sertifikasi,
+            spesialisasi_kompetensi:
+              Array.isArray(data.spesialisasi_kompetensi) && data.spesialisasi_kompetensi.length > 0
+                ? data.spesialisasi_kompetensi
+                : fallback.spesialisasi_kompetensi,
+            foto_url: data.foto_url || fallback.foto_url || satriaRedAvatar,
             foto_position: data.foto_position || fallback.foto_position || "center center",
+            judul_tentang_saya:
+              data.judul_tentang_saya || fallback.judul_tentang_saya || "Tentang Saya",
+            judul_pendidikan:
+              data.judul_pendidikan || fallback.judul_pendidikan || "1. Riwayat Pendidikan",
+            judul_pengalaman:
+              data.judul_pengalaman || fallback.judul_pengalaman || "2. Pengalaman Kerja",
+            judul_keahlian:
+              data.judul_keahlian || fallback.judul_keahlian || "3. Keahlian Utama",
+            judul_kompetensi:
+              data.judul_kompetensi || fallback.judul_kompetensi || "4. Spesialisasi Kompetensi",
           });
           setLastSyncedAt(new Date());
           if (showNotification) {
@@ -300,11 +330,41 @@ function CurriculumVitaePage() {
               pendidikan: Array.isArray(row["pendidikan"])
                 ? (row["pendidikan"] as RiwayatPendidikan[])
                 : prev.pendidikan,
-              keahlian: Array.isArray(row["keahlian"]) ? (row["keahlian"] as string[]) : prev.keahlian,
+              keahlian: Array.isArray(row["keahlian"])
+                ? (row["keahlian"] as string[])
+                : prev.keahlian,
+              sertifikasi: Array.isArray(row["sertifikasi"])
+                ? (row["sertifikasi"] as string[])
+                : prev.sertifikasi,
+              spesialisasi_kompetensi: Array.isArray(row["spesialisasi_kompetensi"])
+                ? (row["spesialisasi_kompetensi"] as string[])
+                : prev.spesialisasi_kompetensi,
               foto_url:
                 typeof row["foto_url"] === "string" ? row["foto_url"] : (prev.foto_url ?? null),
               foto_position:
-                typeof row["foto_position"] === "string" ? row["foto_position"] : (prev.foto_position ?? null),
+                typeof row["foto_position"] === "string"
+                  ? row["foto_position"]
+                  : (prev.foto_position ?? null),
+              judul_tentang_saya:
+                typeof row["judul_tentang_saya"] === "string"
+                  ? row["judul_tentang_saya"]
+                  : prev.judul_tentang_saya,
+              judul_pendidikan:
+                typeof row["judul_pendidikan"] === "string"
+                  ? row["judul_pendidikan"]
+                  : prev.judul_pendidikan,
+              judul_pengalaman:
+                typeof row["judul_pengalaman"] === "string"
+                  ? row["judul_pengalaman"]
+                  : prev.judul_pengalaman,
+              judul_keahlian:
+                typeof row["judul_keahlian"] === "string"
+                  ? row["judul_keahlian"]
+                  : prev.judul_keahlian,
+              judul_kompetensi:
+                typeof row["judul_kompetensi"] === "string"
+                  ? row["judul_kompetensi"]
+                  : prev.judul_kompetensi,
             }));
             setLastSyncedAt(new Date());
             toast.info("Perubahan CV diperbarui secara realtime dari cloud!");
@@ -420,10 +480,18 @@ function CurriculumVitaePage() {
           alamat: cv.alamat,
           telepon: cv.telepon,
           email: cv.email || user.email,
+          linkedin: cv.linkedin || null,
           tentang_saya: cv.tentang_saya,
           pengalaman: cv.pengalaman,
           pendidikan: cv.pendidikan,
           keahlian: cv.keahlian,
+          sertifikasi: cv.sertifikasi || [],
+          spesialisasi_kompetensi: cv.spesialisasi_kompetensi || [],
+          judul_tentang_saya: cv.judul_tentang_saya || "Tentang Saya",
+          judul_pendidikan: cv.judul_pendidikan || "1. Riwayat Pendidikan",
+          judul_pengalaman: cv.judul_pengalaman || "2. Pengalaman Kerja",
+          judul_keahlian: cv.judul_keahlian || "3. Keahlian Utama",
+          judul_kompetensi: cv.judul_kompetensi || "4. Spesialisasi Kompetensi",
           foto_url: cv.foto_url || null,
           foto_position: cv.foto_position || "center center",
           diperbarui_pada: new Date().toISOString(),
@@ -722,9 +790,7 @@ function CurriculumVitaePage() {
                       try {
                         const cleanName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
                         const path = `cv-photos/${user.id}/${Date.now()}-${cleanName}`;
-                        const uploadRes = await supabase.storage
-                          .from("avatars")
-                          .upload(path, file);
+                        const uploadRes = await supabase.storage.from("avatars").upload(path, file);
                         if (uploadRes.error) throw uploadRes.error;
                         const { data: urlData } = supabase.storage
                           .from("avatars")
@@ -732,9 +798,7 @@ function CurriculumVitaePage() {
                         setCv({ ...cv, foto_url: urlData.publicUrl });
                         toast.success("Foto berhasil diunggah!");
                       } catch (err) {
-                        toast.error(
-                          err instanceof Error ? err.message : "Gagal mengunggah foto",
-                        );
+                        toast.error(err instanceof Error ? err.message : "Gagal mengunggah foto");
                       }
                     }}
                   />
@@ -766,13 +830,11 @@ function CurriculumVitaePage() {
                           type="range"
                           min="0"
                           max="100"
-                          value={
-                            (() => {
-                              const pos = cv.foto_position || "center center";
-                              const match = pos.match(/(\d+)%\s+(\d+)%/);
-                              return match ? match[1] : "50";
-                            })()
-                          }
+                          value={(() => {
+                            const pos = cv.foto_position || "center center";
+                            const match = pos.match(/(\d+)%\s+(\d+)%/);
+                            return match ? match[1] : "50";
+                          })()}
                           onChange={(e) => {
                             const yMatch = (cv.foto_position || "50% 50%").match(/(\d+)%\s+(\d+)%/);
                             const yVal = yMatch ? yMatch[2] : "50";
@@ -787,13 +849,11 @@ function CurriculumVitaePage() {
                           type="range"
                           min="0"
                           max="100"
-                          value={
-                            (() => {
-                              const pos = cv.foto_position || "center center";
-                              const match = pos.match(/(\d+)%\s+(\d+)%/);
-                              return match ? match[2] : "50";
-                            })()
-                          }
+                          value={(() => {
+                            const pos = cv.foto_position || "center center";
+                            const match = pos.match(/(\d+)%\s+(\d+)%/);
+                            return match ? match[2] : "50";
+                          })()}
                           onChange={(e) => {
                             const xMatch = (cv.foto_position || "50% 50%").match(/(\d+)%\s+(\d+)%/);
                             const xVal = xMatch ? xMatch[1] : "50";
@@ -873,11 +933,20 @@ function CurriculumVitaePage() {
                   className="rounded-xl text-xs"
                 />
               </div>
-              <div className="space-y-1.5 sm:col-span-2">
+              <div className="space-y-1.5">
                 <Label className="text-xs font-semibold">Alamat Email</Label>
                 <Input
                   value={cv.email}
                   onChange={(e) => setCv({ ...cv, email: e.target.value })}
+                  className="rounded-xl text-xs"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs font-semibold">LinkedIn</Label>
+                <Input
+                  value={cv.linkedin || ""}
+                  onChange={(e) => setCv({ ...cv, linkedin: e.target.value })}
+                  placeholder="www.linkedin.com/in/satria-nur16"
                   className="rounded-xl text-xs"
                 />
               </div>
@@ -1251,193 +1320,164 @@ function CurriculumVitaePage() {
         </div>
       </div>
 
-      {/* MODE PRATINJAU DESAIN CV (ATS-FRIENDLY & MODERN) */}
-      <div
-        id="printable-cv"
-        className="bg-white text-slate-900 rounded-3xl p-8 sm:p-12 border border-slate-200 shadow-sm space-y-8 max-w-4xl mx-auto print:border-none print:shadow-none print:p-0 print:m-0 print:max-w-none print:rounded-none"
-      >
-        {/* CV Header */}
-        <div className="border-b-2 border-slate-900 pb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div className="flex items-center gap-4">
-            {cv.foto_url && (
+      {/* MODE PRATINJAU DESAIN CV (PERSIS SESUAI DOKUMEN RESMI PDF) */}
+      <div className="w-full flex justify-center py-2 sm:py-4 bg-slate-100/70 dark:bg-slate-950/60 rounded-3xl p-2 sm:p-6 print:p-0 print:m-0 print:bg-transparent">
+        <div
+          id="printable-cv"
+          className="bg-white text-slate-900 w-full max-w-[820px] p-8 sm:p-12 md:p-14 shadow-md border border-slate-200 print:shadow-none print:border-none print:p-0 print:m-0 print:max-w-none space-y-5"
+          style={{
+            fontFamily: "'Plus Jakarta Sans', ui-sans-serif, system-ui, -apple-system, sans-serif",
+          }}
+        >
+          {/* HEADER: FOTO DI KIRI + DETAIL DI KANAN */}
+          <div className="flex items-start gap-5 sm:gap-7 pb-4">
+            {/* Foto Portrait Berlatar Merah Sesuai PDF */}
+            <div className="shrink-0">
               <img
-                src={cv.foto_url}
+                src={cv.foto_url || satriaRedAvatar}
                 alt={cv.nama_lengkap}
-                className="size-20 sm:size-24 rounded-2xl object-cover border-2 border-slate-200 shrink-0"
+                className="w-[105px] h-[140px] sm:w-[115px] sm:h-[152px] object-cover border border-slate-300 shadow-2xs"
                 style={{ objectPosition: cv.foto_position || "center center" }}
               />
-            )}
-            <div className="space-y-1">
-              <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900 uppercase">
+            </div>
+
+            {/* Nama & Data Kontak dengan Format Tabel Bersih Berkolom */}
+            <div className="space-y-2 pt-0.5 flex-1 min-w-0">
+              <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#0f2b5c] uppercase">
                 {cv.nama_lengkap}
               </h1>
-            {cv.headline && (
-              <p className="text-sm sm:text-base font-semibold text-slate-600 uppercase tracking-wide">
-                {cv.headline}
-              </p>
-            )}
-            </div>
-          </div>
 
-          <div className="space-y-1.5 text-xs text-slate-600 sm:text-right font-medium">
-            {cv.alamat && (
-              <div className="flex items-center sm:justify-end gap-2">
-                <span>{cv.alamat}</span>
-                <MapPin className="size-3.5 text-slate-400 shrink-0 print:hidden" />
-              </div>
-            )}
-            {cv.telepon && (
-              <div className="flex items-center sm:justify-end gap-2">
-                <span>{cv.telepon}</span>
-                <Phone className="size-3.5 text-slate-400 shrink-0 print:hidden" />
-              </div>
-            )}
-            {cv.email && (
-              <div className="flex items-center sm:justify-end gap-2">
-                <a
-                  href={`mailto:${cv.email}`}
-                  className="hover:underline text-indigo-600 print:text-slate-900"
-                >
-                  {cv.email}
-                </a>
-                <Mail className="size-3.5 text-slate-400 shrink-0 print:hidden" />
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Section: Tentang Saya */}
-        {cv.tentang_saya && (
-          <div className="space-y-2">
-            <h2 className="text-xs font-black uppercase tracking-wider text-slate-900 border-b border-slate-300 pb-1 flex items-center gap-2">
-              <span>TENTANG SAYA</span>
-            </h2>
-            <p className="text-xs sm:text-sm text-slate-700 leading-relaxed text-justify">
-              {cv.tentang_saya}
-            </p>
-          </div>
-        )}
-
-        {/* Section: Pengalaman Kerja */}
-        {cv.pengalaman.length > 0 && (
-          <div className="space-y-4">
-            <h2 className="text-xs font-black uppercase tracking-wider text-slate-900 border-b border-slate-300 pb-1 flex items-center gap-2">
-              <span>PENGALAMAN KERJA</span>
-            </h2>
-
-            <div className="space-y-5">
-              {cv.pengalaman.map((exp) => (
-                <div key={exp.id} className="space-y-1.5">
-                  <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-1">
-                    <h3 className="text-sm font-bold text-slate-900 uppercase">{exp.perusahaan}</h3>
-                    <span className="text-xs font-semibold text-slate-500 sm:text-right">
-                      {exp.periode}
-                    </span>
-                  </div>
-                  <p className="text-xs font-bold text-slate-700 uppercase tracking-wide">
-                    {exp.posisi}
-                  </p>
-                  <ul className="list-disc list-outside pl-4 space-y-1 text-xs text-slate-700 leading-relaxed">
-                    {exp.deskripsi.map((point, pIdx) => (
-                      <li key={pIdx}>{point}</li>
-                    ))}
-                  </ul>
+              <div className="text-[13px] sm:text-[13.5px] text-slate-900 space-y-1 pt-1">
+                <div className="grid grid-cols-[85px_12px_1fr] sm:grid-cols-[90px_12px_1fr] items-start">
+                  <span className="font-bold">Address</span>
+                  <span className="font-bold">:</span>
+                  <span className="leading-snug">{cv.alamat}</span>
                 </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Section: Pendidikan */}
-        {cv.pendidikan.length > 0 && (
-          <div className="space-y-4">
-            <h2 className="text-xs font-black uppercase tracking-wider text-slate-900 border-b border-slate-300 pb-1 flex items-center gap-2">
-              <span>PENDIDIKAN</span>
-            </h2>
-
-            <div className="space-y-3">
-              {cv.pendidikan.map((edu) => (
-                <div
-                  key={edu.id}
-                  className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-1"
-                >
-                  <div>
-                    <h3 className="text-sm font-bold text-slate-900">{edu.institusi}</h3>
-                    <p className="text-xs text-slate-700 font-medium">{edu.jurusan}</p>
-                  </div>
-                  <span className="text-xs font-semibold text-slate-500 sm:text-right">
-                    {edu.periode}
+                <div className="grid grid-cols-[85px_12px_1fr] sm:grid-cols-[90px_12px_1fr] items-start">
+                  <span className="font-bold">Phone</span>
+                  <span className="font-bold">:</span>
+                  <span className="leading-snug">{cv.telepon}</span>
+                </div>
+                <div className="grid grid-cols-[85px_12px_1fr] sm:grid-cols-[90px_12px_1fr] items-start">
+                  <span className="font-bold">Email</span>
+                  <span className="font-bold">:</span>
+                  <a
+                    href={`mailto:${cv.email}`}
+                    className="leading-snug hover:underline text-slate-900"
+                  >
+                    {cv.email}
+                  </a>
+                </div>
+                <div className="grid grid-cols-[85px_12px_1fr] sm:grid-cols-[90px_12px_1fr] items-start">
+                  <span className="font-bold">LinkedIn</span>
+                  <span className="font-bold">:</span>
+                  <span className="leading-snug text-slate-900">
+                    {cv.linkedin || "www.linkedin.com/in/satria-nur16"}
                   </span>
                 </div>
-              ))}
+              </div>
             </div>
           </div>
-        )}
 
-        {/* Section: Keahlian */}
-        {cv.keahlian.length > 0 && (
-          <div className="space-y-2.5">
-            <h2 className="text-xs font-black uppercase tracking-wider text-slate-900 border-b border-slate-300 pb-1 flex items-center gap-2">
-              <span>KEAHLIAN</span>
-            </h2>
-
-            <div className="flex flex-wrap gap-2 pt-1">
-              {cv.keahlian.map((skill, sIdx) => (
-                <span
-                  key={sIdx}
-                  className="px-3 py-1 rounded-md bg-slate-100 text-slate-800 text-xs font-semibold border border-slate-200 print:border-slate-300"
-                >
-                  {skill}
-                </span>
-              ))}
+          {/* 1. SUMMARY */}
+          {cv.tentang_saya && (
+            <div className="cv-section space-y-1.5 pt-1">
+              <h2 className="cv-section-title text-[13.5px] sm:text-sm font-bold uppercase tracking-wider text-[#0f2b5c] border-b-[1.5px] border-[#0f2b5c] pb-0.5">
+                SUMMARY
+              </h2>
+              <p className="text-[12.5px] sm:text-[13px] text-slate-800 leading-relaxed text-justify">
+                {cv.tentang_saya}
+              </p>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Section: Catatan & Capaian Pekerjaan Terverifikasi dari Dasbor Akun */}
-        {completedWorkLogs.length > 0 && (
-          <div className="space-y-3 pt-2">
-            <h2 className="text-xs font-black uppercase tracking-wider text-slate-900 border-b border-slate-300 pb-1 flex items-center justify-between">
-              <span className="flex items-center gap-2">
-                <span>AKTIVITAS & PEKERJAAN TERVERIFIKASI (SINKRONISASI DASBOR NOURA)</span>
-              </span>
-              <span className="text-[10px] font-semibold text-emerald-700 print:text-slate-600 tracking-normal normal-case font-mono">
-                {completedWorkLogs.length} Catatan Selesai
-              </span>
-            </h2>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
-              {completedWorkLogs.map((log) => (
-                <div
-                  key={log.id}
-                  className="p-3 rounded-xl border border-slate-200 print:border-slate-300 bg-slate-50/50 print:bg-transparent space-y-1"
-                >
-                  <div className="flex items-center justify-between text-[11px]">
-                    <span className="font-bold text-slate-800 line-clamp-1">{log.judul}</span>
-                    <span className="text-[10px] text-slate-500 shrink-0 font-mono ml-2">
-                      {log.tanggal}
-                    </span>
-                  </div>
-                  {log.deskripsi && (
-                    <p className="text-[11px] text-slate-600 leading-snug line-clamp-2">
-                      {log.deskripsi}
+          {/* 2. EDUCATION */}
+          {cv.pendidikan.length > 0 && (
+            <div className="cv-section space-y-2 pt-2">
+              <h2 className="cv-section-title text-[13.5px] sm:text-sm font-bold uppercase tracking-wider text-[#0f2b5c] border-b-[1.5px] border-[#0f2b5c] pb-0.5">
+                EDUCATION
+              </h2>
+              <div className="space-y-2.5 pt-0.5">
+                {cv.pendidikan.map((edu) => (
+                  <div key={edu.id} className="cv-item">
+                    <div className="flex items-baseline justify-between text-[13px] sm:text-[13.5px]">
+                      <span className="font-bold text-slate-900">{edu.institusi}</span>
+                      <span className="font-bold text-slate-900 text-right">{edu.periode}</span>
+                    </div>
+                    <p className="text-[12.5px] sm:text-[13px] text-slate-800 font-normal">
+                      {edu.jurusan}
                     </p>
-                  )}
-                  <div className="pt-1 flex items-center gap-1.5">
-                    {log.kategori && (
-                      <span className="text-[9px] uppercase tracking-wide font-semibold text-slate-500 px-1.5 py-0.5 rounded bg-slate-200/80 print:border print:border-slate-300">
-                        {log.kategori}
-                      </span>
-                    )}
-                    <span className="text-[9px] text-emerald-600 font-semibold print:text-slate-700">
-                      ✓ Terverifikasi Selesai di Dasbor
-                    </span>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
+          )}
+
+          {/* 3. WORK EXPERIENCE */}
+          {cv.pengalaman.length > 0 && (
+            <div className="cv-section space-y-2.5 pt-2">
+              <h2 className="cv-section-title text-[13.5px] sm:text-sm font-bold uppercase tracking-wider text-[#0f2b5c] border-b-[1.5px] border-[#0f2b5c] pb-0.5">
+                WORK EXPERIENCE
+              </h2>
+              <div className="space-y-4 pt-0.5">
+                {cv.pengalaman.map((exp) => (
+                  <div key={exp.id} className="cv-item space-y-1">
+                    <div className="flex items-baseline justify-between text-[13px] sm:text-[13.5px]">
+                      <span className="font-bold text-slate-900">{exp.perusahaan}</span>
+                      <span className="font-bold text-slate-900 text-right shrink-0 ml-2">
+                        {exp.periode}
+                      </span>
+                    </div>
+                    <p className="text-[12.5px] sm:text-[13px] font-semibold text-slate-800">
+                      {exp.posisi}
+                    </p>
+                    <ul className="list-disc list-outside ml-4 sm:ml-5 space-y-1 text-[12px] sm:text-[12.5px] text-slate-800 leading-relaxed">
+                      {exp.deskripsi.map((point, pIdx) => (
+                        <li key={pIdx} className="pl-0.5">
+                          {point}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* 4. COMPETENCY CERTIFICATION */}
+          <div className="cv-section space-y-2 pt-2">
+            <h2 className="cv-section-title text-[13.5px] sm:text-sm font-bold uppercase tracking-wider text-[#0f2b5c] border-b-[1.5px] border-[#0f2b5c] pb-0.5">
+              COMPETENCY CERTIFICATION
+            </h2>
+            {cv.sertifikasi && cv.sertifikasi.length > 0 ? (
+              <ul className="list-disc list-outside ml-4 sm:ml-5 space-y-1 text-[12px] sm:text-[12.5px] text-slate-800 pt-0.5">
+                {cv.sertifikasi.map((cert, cIdx) => (
+                  <li key={cIdx} className="pl-0.5">
+                    {cert}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <div className="text-[12px] text-slate-700 pl-4 pt-0.5">•</div>
+            )}
           </div>
-        )}
+
+          {/* 5. SKILL INFORMATION */}
+          {cv.keahlian.length > 0 && (
+            <div className="cv-section space-y-2 pt-2">
+              <h2 className="cv-section-title text-[13.5px] sm:text-sm font-bold uppercase tracking-wider text-[#0f2b5c] border-b-[1.5px] border-[#0f2b5c] pb-0.5">
+                SKILL INFORMATION
+              </h2>
+              <ul className="list-disc list-outside ml-4 sm:ml-5 space-y-1 text-[12px] sm:text-[12.5px] text-slate-800 pt-0.5">
+                {cv.keahlian.map((skill, sIdx) => (
+                  <li key={sIdx} className="font-bold text-slate-900 pl-0.5">
+                    {skill}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* DIALOG 1: KONVERSI & PARSING CV */}
@@ -1473,7 +1513,9 @@ function CurriculumVitaePage() {
               </p>
               <Button
                 type="button"
-                onClick={() => applyParsedCV(createDefaultCVForUser(user?.email, profile ?? undefined))}
+                onClick={() =>
+                  applyParsedCV(createDefaultCVForUser(user?.email, profile ?? undefined))
+                }
                 className="w-full rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold h-8 gap-1.5 cursor-pointer mt-1"
               >
                 <Check className="size-3.5" />
@@ -1493,8 +1535,10 @@ function CurriculumVitaePage() {
                 </span>
               </div>
               <p className="text-xs text-slate-600 dark:text-slate-400">
-                Memuat data lengkap: PT Swabina Gatra (Technical Data Supporting), Hotel Mustika
-                Tuban, SMK N 1 Tuban, Universitas Terbuka, dan keahlian Office/Analysis.
+                Memuat data resmi sesuai dokumen PDF: PT Sonar Persada Manunggal (Cataloger Elins),
+                PT Swabina Gatra, PT Jaykay Files Indonesia, Mustika Hotel, SMK Negeri 1 Tuban,
+                Universitas Terbuka (S1 Management), foto profil berlatar merah, dan keahlian
+                Material Cataloging & Data Management.
               </p>
               <Button
                 type="button"

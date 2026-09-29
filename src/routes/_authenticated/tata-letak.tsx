@@ -53,7 +53,9 @@ const SECTION_ICONS: Partial<Record<LandingSectionId, typeof Sparkles>> = {
 function TataLetakLandingPage() {
   const { user } = useAuth();
   const [config, setConfig] = useState<LandingPageConfig>(DEFAULT_LANDING_CONFIG);
-  const [activeTab, setActiveTab] = useState<"susunan" | "cv" | "pekerjaan" | "pratinjau">("susunan");
+  const [activeTab, setActiveTab] = useState<"susunan" | "cv" | "pekerjaan" | "pratinjau">(
+    "susunan",
+  );
   const [isSaving, setIsSaving] = useState(false);
   const [, startTransition] = useTransition();
 
@@ -483,9 +485,7 @@ function TataLetakLandingPage() {
                 </Label>
                 <Textarea
                   value={config.heroSubtitle}
-                  onChange={(e) =>
-                    setConfig((prev) => ({ ...prev, heroSubtitle: e.target.value }))
-                  }
+                  onChange={(e) => setConfig((prev) => ({ ...prev, heroSubtitle: e.target.value }))}
                   rows={2}
                   placeholder="Catatan pekerjaan, jadwal, dokumen, dan portofolio saya dalam satu tempat."
                   className="rounded-xl mt-1 text-sm font-medium"
@@ -623,7 +623,9 @@ function TataLetakLandingPage() {
                     className="flex items-center justify-between gap-4 p-3 rounded-xl bg-slate-50/70 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60"
                   >
                     <div>
-                      <p className="text-xs font-bold text-slate-800 dark:text-slate-100">{label}</p>
+                      <p className="text-xs font-bold text-slate-800 dark:text-slate-100">
+                        {label}
+                      </p>
                       <p className="text-[11px] text-slate-500 dark:text-slate-400">{desc}</p>
                     </div>
                     <Switch
@@ -797,21 +799,31 @@ function TataLetakLandingPage() {
           <div className="rounded-3xl border border-slate-200/80 bg-white p-5 shadow-xs dark:border-slate-800 dark:bg-slate-900 sm:p-6">
             <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 border-b border-slate-100 pb-4 dark:border-slate-800">
               <div className="min-w-0">
-                <h3 className="text-sm font-bold text-slate-900 dark:text-white">Kartu Pekerjaan Tahun Berjalan</h3>
-                <p className="mt-0.5 text-xs text-slate-500">Isi kartu ini tampil di sisi kanan CV pada halaman depan.</p>
+                <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                  Kartu Pekerjaan Tahun Berjalan
+                </h3>
+                <p className="mt-0.5 text-xs text-slate-500">
+                  Isi kartu ini tampil di sisi kanan CV pada halaman depan.
+                </p>
               </div>
               <Switch
                 checked={config.showYearWorkCards}
-                onCheckedChange={(value) => setConfig((prev) => ({ ...prev, showYearWorkCards: value }))}
+                onCheckedChange={(value) =>
+                  setConfig((prev) => ({ ...prev, showYearWorkCards: value }))
+                }
                 className="shrink-0 data-[state=checked]:bg-indigo-600"
               />
             </div>
 
             <div className="mt-4">
-              <Label className="text-xs font-semibold text-slate-700 dark:text-slate-300">Judul Bagian</Label>
+              <Label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                Judul Bagian
+              </Label>
               <Input
                 value={config.yearWorkTitle}
-                onChange={(event) => setConfig((prev) => ({ ...prev, yearWorkTitle: event.target.value }))}
+                onChange={(event) =>
+                  setConfig((prev) => ({ ...prev, yearWorkTitle: event.target.value }))
+                }
                 placeholder="Pekerjaan Tahun Ini"
                 className="mt-1 rounded-xl"
               />
@@ -819,14 +831,24 @@ function TataLetakLandingPage() {
 
             <div className="mt-5 space-y-3">
               {config.yearWorkItems.map((item, index) => (
-                <div key={item.id} className="rounded-2xl border border-slate-200/80 bg-slate-50/70 p-4 dark:border-slate-700 dark:bg-slate-800/50">
+                <div
+                  key={item.id}
+                  className="rounded-2xl border border-slate-200/80 bg-slate-50/70 p-4 dark:border-slate-700 dark:bg-slate-800/50"
+                >
                   <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
-                    <p className="truncate text-xs font-bold text-slate-800 dark:text-slate-100">Kartu #{index + 1}</p>
+                    <p className="truncate text-xs font-bold text-slate-800 dark:text-slate-100">
+                      Kartu #{index + 1}
+                    </p>
                     <Button
                       type="button"
                       variant="ghost"
                       size="icon"
-                      onClick={() => setConfig((prev) => ({ ...prev, yearWorkItems: prev.yearWorkItems.filter((entry) => entry.id !== item.id) }))}
+                      onClick={() =>
+                        setConfig((prev) => ({
+                          ...prev,
+                          yearWorkItems: prev.yearWorkItems.filter((entry) => entry.id !== item.id),
+                        }))
+                      }
                       className="size-8 shrink-0 text-rose-500 hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/30"
                       title="Hapus kartu"
                     >
@@ -836,19 +858,70 @@ function TataLetakLandingPage() {
                   <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
                     <div className="sm:col-span-2">
                       <Label className="text-[11px] font-semibold">Judul Pekerjaan</Label>
-                      <Input value={item.title} onChange={(event) => setConfig((prev) => ({ ...prev, yearWorkItems: prev.yearWorkItems.map((entry) => entry.id === item.id ? { ...entry, title: event.target.value } : entry) }))} className="mt-1 rounded-xl text-xs" />
+                      <Input
+                        value={item.title}
+                        onChange={(event) =>
+                          setConfig((prev) => ({
+                            ...prev,
+                            yearWorkItems: prev.yearWorkItems.map((entry) =>
+                              entry.id === item.id
+                                ? { ...entry, title: event.target.value }
+                                : entry,
+                            ),
+                          }))
+                        }
+                        className="mt-1 rounded-xl text-xs"
+                      />
                     </div>
                     <div>
                       <Label className="text-[11px] font-semibold">Tanggal</Label>
-                      <Input type="date" value={item.date} onChange={(event) => setConfig((prev) => ({ ...prev, yearWorkItems: prev.yearWorkItems.map((entry) => entry.id === item.id ? { ...entry, date: event.target.value } : entry) }))} className="mt-1 rounded-xl text-xs" />
+                      <Input
+                        type="date"
+                        value={item.date}
+                        onChange={(event) =>
+                          setConfig((prev) => ({
+                            ...prev,
+                            yearWorkItems: prev.yearWorkItems.map((entry) =>
+                              entry.id === item.id ? { ...entry, date: event.target.value } : entry,
+                            ),
+                          }))
+                        }
+                        className="mt-1 rounded-xl text-xs"
+                      />
                     </div>
                     <div>
                       <Label className="text-[11px] font-semibold">Kategori</Label>
-                      <Input value={item.category} onChange={(event) => setConfig((prev) => ({ ...prev, yearWorkItems: prev.yearWorkItems.map((entry) => entry.id === item.id ? { ...entry, category: event.target.value } : entry) }))} className="mt-1 rounded-xl text-xs" />
+                      <Input
+                        value={item.category}
+                        onChange={(event) =>
+                          setConfig((prev) => ({
+                            ...prev,
+                            yearWorkItems: prev.yearWorkItems.map((entry) =>
+                              entry.id === item.id
+                                ? { ...entry, category: event.target.value }
+                                : entry,
+                            ),
+                          }))
+                        }
+                        className="mt-1 rounded-xl text-xs"
+                      />
                     </div>
                     <div className="sm:col-span-2">
                       <Label className="text-[11px] font-semibold">Status</Label>
-                      <select value={item.status} onChange={(event) => setConfig((prev) => ({ ...prev, yearWorkItems: prev.yearWorkItems.map((entry) => entry.id === item.id ? { ...entry, status: event.target.value as typeof item.status } : entry) }))} className="mt-1 h-9 w-full rounded-xl border border-input bg-background px-3 text-xs">
+                      <select
+                        value={item.status}
+                        onChange={(event) =>
+                          setConfig((prev) => ({
+                            ...prev,
+                            yearWorkItems: prev.yearWorkItems.map((entry) =>
+                              entry.id === item.id
+                                ? { ...entry, status: event.target.value as typeof item.status }
+                                : entry,
+                            ),
+                          }))
+                        }
+                        className="mt-1 h-9 w-full rounded-xl border border-input bg-background px-3 text-xs"
+                      >
                         <option value="selesai">Selesai</option>
                         <option value="berjalan">Berjalan</option>
                         <option value="direncanakan">Direncanakan</option>
@@ -856,7 +929,21 @@ function TataLetakLandingPage() {
                     </div>
                     <div className="sm:col-span-2">
                       <Label className="text-[11px] font-semibold">Deskripsi</Label>
-                      <Textarea value={item.description} onChange={(event) => setConfig((prev) => ({ ...prev, yearWorkItems: prev.yearWorkItems.map((entry) => entry.id === item.id ? { ...entry, description: event.target.value } : entry) }))} rows={2} className="mt-1 resize-none rounded-xl text-xs" />
+                      <Textarea
+                        value={item.description}
+                        onChange={(event) =>
+                          setConfig((prev) => ({
+                            ...prev,
+                            yearWorkItems: prev.yearWorkItems.map((entry) =>
+                              entry.id === item.id
+                                ? { ...entry, description: event.target.value }
+                                : entry,
+                            ),
+                          }))
+                        }
+                        rows={2}
+                        className="mt-1 resize-none rounded-xl text-xs"
+                      />
                     </div>
                   </div>
                 </div>
@@ -867,13 +954,32 @@ function TataLetakLandingPage() {
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => setConfig((prev) => ({ ...prev, yearWorkItems: [...prev.yearWorkItems, { id: `work-${Date.now()}`, title: "Pekerjaan Baru", description: "", date: new Date().toISOString().slice(0, 10), category: "Pekerjaan", status: "berjalan" }] }))}
+                onClick={() =>
+                  setConfig((prev) => ({
+                    ...prev,
+                    yearWorkItems: [
+                      ...prev.yearWorkItems,
+                      {
+                        id: `work-${Date.now()}`,
+                        title: "Pekerjaan Baru",
+                        description: "",
+                        date: new Date().toISOString().slice(0, 10),
+                        category: "Pekerjaan",
+                        status: "berjalan",
+                      },
+                    ],
+                  }))
+                }
                 className="rounded-xl border-dashed text-xs font-semibold"
               >
                 <Plus className="size-3.5" />
                 Tambah Kartu
               </Button>
-              <Button onClick={handleSave} disabled={isSaving} className="rounded-xl bg-indigo-600 text-xs font-semibold text-white hover:bg-indigo-700">
+              <Button
+                onClick={handleSave}
+                disabled={isSaving}
+                className="rounded-xl bg-indigo-600 text-xs font-semibold text-white hover:bg-indigo-700"
+              >
                 <Save className="size-3.5" />
                 Simpan Perubahan
               </Button>
@@ -892,8 +998,8 @@ function TataLetakLandingPage() {
               <p className="mt-0.5 text-indigo-800 dark:text-indigo-300">
                 Ini adalah gambaran langsung bagaimana landing page akan tampil dengan pengaturan
                 saat ini. Perubahan teks hero, urutan bagian, visibilitas modul, dan elemen CV
-                langsung tercermin di sini. Klik <strong>Simpan Perubahan</strong> untuk
- menerapkan ke landing page publik.
+                langsung tercermin di sini. Klik <strong>Simpan Perubahan</strong> untuk menerapkan
+                ke landing page publik.
               </p>
             </div>
           </div>
@@ -901,10 +1007,7 @@ function TataLetakLandingPage() {
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-5">
             {/* Live Preview */}
             <div className="lg:col-span-3">
-              <LandingPreview
-                config={config}
-                cvData={DEFAULT_CV_SATRIA}
-              />
+              <LandingPreview config={config} cvData={DEFAULT_CV_SATRIA} />
             </div>
 
             {/* Summary of current settings */}
@@ -917,19 +1020,26 @@ function TataLetakLandingPage() {
                 {/* Hero text summary */}
                 <div className="space-y-2 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60">
                   <div>
-                    <span className="text-[10px] font-semibold text-slate-400 uppercase">Headline</span>
+                    <span className="text-[10px] font-semibold text-slate-400 uppercase">
+                      Headline
+                    </span>
                     <p className="text-xs font-bold text-slate-800 dark:text-slate-100">
                       {config.heroTitle || "WorkSpace & Portfolio"}
                     </p>
                   </div>
                   <div>
-                    <span className="text-[10px] font-semibold text-slate-400 uppercase">Subjudul</span>
+                    <span className="text-[10px] font-semibold text-slate-400 uppercase">
+                      Subjudul
+                    </span>
                     <p className="text-xs text-slate-600 dark:text-slate-300 line-clamp-2">
-                      {config.heroSubtitle || "Catatan pekerjaan, jadwal, dokumen, dan portofolio saya dalam satu tempat."}
+                      {config.heroSubtitle ||
+                        "Catatan pekerjaan, jadwal, dokumen, dan portofolio saya dalam satu tempat."}
                     </p>
                   </div>
                   <div>
-                    <span className="text-[10px] font-semibold text-slate-400 uppercase">Badge</span>
+                    <span className="text-[10px] font-semibold text-slate-400 uppercase">
+                      Badge
+                    </span>
                     <p className="text-xs text-indigo-600 dark:text-indigo-400">
                       {config.heroBadgeText || "Technical Data Support & Portfolio"}
                     </p>
@@ -938,7 +1048,9 @@ function TataLetakLandingPage() {
 
                 {/* Sections visibility */}
                 <div className="space-y-1.5">
-                  <span className="text-[10px] font-semibold text-slate-400 uppercase">Bagian Aktif</span>
+                  <span className="text-[10px] font-semibold text-slate-400 uppercase">
+                    Bagian Aktif
+                  </span>
                   {config.sectionOrder.map((id, idx) => {
                     const meta = ALL_LANDING_SECTIONS.find((s) => s.id === id);
                     const enabled = isSectionEnabled(id);
@@ -948,8 +1060,12 @@ function TataLetakLandingPage() {
                         <span className="size-5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-500 text-[10px] font-bold flex items-center justify-center font-mono shrink-0">
                           {idx + 1}
                         </span>
-                        <Icon className={`size-3.5 ${enabled ? "text-indigo-500" : "text-slate-300 dark:text-slate-600"}`} />
-                        <span className={`truncate ${enabled ? "text-slate-700 dark:text-slate-200 font-medium" : "text-slate-400 line-through"}`}>
+                        <Icon
+                          className={`size-3.5 ${enabled ? "text-indigo-500" : "text-slate-300 dark:text-slate-600"}`}
+                        />
+                        <span
+                          className={`truncate ${enabled ? "text-slate-700 dark:text-slate-200 font-medium" : "text-slate-400 line-through"}`}
+                        >
                           {meta?.label || id}
                         </span>
                         {enabled ? (
@@ -964,12 +1080,15 @@ function TataLetakLandingPage() {
 
                 {/* CV source */}
                 <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
-                  <span className="text-[10px] font-semibold text-slate-400 uppercase">Sumber CV</span>
+                  <span className="text-[10px] font-semibold text-slate-400 uppercase">
+                    Sumber CV
+                  </span>
                   <p className="text-xs font-medium text-slate-700 dark:text-slate-200">
-                    {config.cvSource === "active_user" ? "Akun Pengguna Aktif" : "Satria Nur Ardiansyah"}
+                    {config.cvSource === "active_user"
+                      ? "Akun Pengguna Aktif"
+                      : "Satria Nur Ardiansyah"}
                   </p>
                 </div>
-
               </div>
 
               <Button

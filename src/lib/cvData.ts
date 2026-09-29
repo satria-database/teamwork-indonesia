@@ -1,3 +1,5 @@
+import satriaRedAvatar from "@/assets/images/satria_avatar_red_1790582692896.jpg";
+
 export type PengalamanKerja = {
   id: string;
   perusahaan: string;
@@ -19,69 +21,118 @@ export type CVData = {
   alamat: string;
   telepon: string;
   email: string;
+  linkedin?: string;
   tentang_saya: string;
   pengalaman: PengalamanKerja[];
   pendidikan: RiwayatPendidikan[];
+  sertifikasi?: string[];
   keahlian: string[];
+  spesialisasi_kompetensi?: string[];
   foto_url?: string | null;
   foto_position?: string | null;
+  judul_tentang_saya?: string;
+  judul_pendidikan?: string;
+  judul_pengalaman?: string;
+  judul_keahlian?: string;
+  judul_kompetensi?: string;
 };
 
-// Data CV Satria Nur Ardiansyah
+// Data CV Resmi Satria Nur Ardiansyah (Sesuai Urutan & Dokumen)
 export const DEFAULT_CV_SATRIA: CVData = {
   nama_lengkap: "SATRIA NUR ARDIANSYAH",
-  headline: "Technical Data Supporting & Data Analysis",
-  alamat: "Jl. Teuku Umar, Latsari 2 No.57 Tuban",
+  headline: "Cataloger Elins Staff & Data Standardization",
+  alamat: "Teuku Umar Street, Latsari 2 No. 57, Tuban, East Java",
   telepon: "081216130661",
   email: "satria62317@gmail.com",
+  linkedin: "www.linkedin.com/in/satria-nur16",
   tentang_saya:
-    "Lulusan SMK Teknik Instalasi Tenaga Listrik dari SMK Negeri 1 Tuban. Saat ini sedang menjalani Pendidikan S1-Manajemen di Universitas Terbuka, Memiliki kemampuan berpikir kritis, dan mengoperasikan Microsoft Office. Berpengalaman dalam membuat standarisasi produk/barang, termasuk pengarsipan, pengelolaan raw data. Sedang mencari pekerjaan yang berhubungan dengan administrasi/data analysis di perusahaan untuk mengaplikasikan kemampuan yang telah dikembangkan selama masa bekerja.",
+    "Graduate of Electrical Power Installation Engineering from SMK Negeri 1 Tuban, currently pursuing a Bachelor's degree in Management at Universitas Terbuka. Experienced in product and material standardization, data management, and administrative activities.",
+  pendidikan: [
+    {
+      id: "edu-1",
+      institusi: "Universitas Terbuka",
+      jurusan: "S1 Management",
+      periode: "2023 – Present",
+    },
+    {
+      id: "edu-2",
+      institusi: "SMK Negeri 1 Tuban",
+      jurusan: "Electrical Power Installation Engineering",
+      periode: "2017 – 2020",
+    },
+  ],
   pengalaman: [
     {
       id: "exp-1",
-      perusahaan: "PT SWABINA GATRA",
-      posisi: "TECHNICAL DATA SUPPORTING",
-      periode: "02 Juni 2022 – 02 April 2025",
+      perusahaan: "PT Sonar Persada Manunggal - Tuban,East Java",
+      posisi: "Cataloger Elins Staff (Project at PT. Semen Indonesia (Persero) Tbk)",
+      periode: "Jan 2026 – Present",
       deskripsi: [
-        "Membuat standard spesifikasi Produk/Barang",
-        "Mengumpulkan & mengolah data mentah menjadi data final sesuai dengan standard yang telah dibuat perusahaan",
-        "Membuat arsip dari data-data yang telah diolah di spreadsheet maupun aplikasi perusahaan",
+        "Analyze requests for new item additions based on established naming convention standards through the FORCA Cataloguing system, followed by Item Number registration in SAP.",
+        "Perform Good Issued data entry and updates based on the latest data and standards to ensure material data consistency and accuracy.",
+        "Review and verify datasheets, drawings, and technical specifications to ensure material data complies with operational requirements.",
+        "Prepare and analyze Volume Pooling data based on historical Good Issued records by material group as a basis for material demand planning.",
+        "Prepare the Bill of Quantity (BOQ) and Engineer’s Estimate (Harga Perkiraan Perancang/HPP) as part of the procurement and tender preparation process.",
+        "Analyze the latest or most recent annual prices used for each item included in the Volume Pooling process as a basis for preparing the Engineer’s Estimate (HPP).",
       ],
     },
     {
       id: "exp-2",
-      perusahaan: "HOTEL MUSTIKA TUBAN",
-      posisi: "ELECTRICAL ENGINEERING",
-      periode: "01 April 2019 – 30 Juni 2019",
+      perusahaan: "PT Swabina Gatra - Tuban,East Java",
+      posisi: "Supporting Enrichment Data Staff (Project at PT. Semen Indonesia (Persero) Tbk)",
+      periode: "June 2022 - April 2025",
       deskripsi: [
-        "Pemeliharaan instalasi listrik hotel",
-        "Melakukan penggantian lampu dan pembersihan air conditioner",
+        "Develop and maintain standardized naming conventions for machinery, equipment, and spare parts required by plants to support procurement processes and vendor requirements.",
+        "Analyze requests for new item additions based on established naming convention standards through the FORCA Cataloguing system, followed by Item Number registration in SAP.",
+        "Perform Good Issued data entry and updates based on the latest data and standards to ensure material data consistency and accuracy.",
+        "Provide DN/LN spare part data as evaluation material to support the improvement of TKDN (Domestic Component Level) across industrial operations.",
+        "Provide information on critical spare part availability and collect and analyze data to support the identification and resolution of operational issues.",
       ],
     },
-  ],
-  pendidikan: [
     {
-      id: "edu-1",
-      institusi: "SMK Negeri 1 Tuban",
-      jurusan: "Teknik Instalasi Tenaga Listrik",
-      periode: "2017 – 2020",
+      id: "exp-3",
+      perusahaan: "PT Jaykay Files Indonesia - Semarang,Central Java",
+      posisi: "Hot Forging (Project)",
+      periode: "Augst 2020 - Sept 2020",
+      deskripsi: [
+        "Performed forging operations to shape steel materials into file tangs according to production specifications and standards.",
+        "Conducted visual inspections of forged materials to check their shape and condition.",
+        "Sorted file products by separating acceptable products from those with production defects based on established quality standards.",
+      ],
     },
     {
-      id: "edu-2",
-      institusi: "Universitas Terbuka",
-      jurusan: "S1 Manajemen",
-      periode: "2023 – ON GOING",
+      id: "exp-4",
+      perusahaan: "Mustika Hotel - Tuban,East Java",
+      posisi: "Electrical Engineering (Intership)",
+      periode: "April 2019 - June 2019",
+      deskripsi: [
+        "Performed maintenance and inspection of the hotel's electrical installations to ensure safe and efficient operation.",
+        "Conducted lighting replacement, electrical equipment maintenance, and air conditioning (AC) cleaning and maintenance.",
+        "Conducted routine inspections of electrical equipment and supporting facilities to ensure they remained in good working condition.",
+      ],
     },
   ],
   keahlian: [
     "Microsoft Office",
-    "Cataloger",
-    "Data Analysis",
-    "Standardisasi Produk",
-    "Pengarsipan Data",
+    "Material Cataloging & Product Standardization",
+    "Data Management & Data Entry",
   ],
-  foto_url: null,
+  sertifikasi: [
+    "Sertifikasi Kompetensi Kelistrikan & Instrumentasi Industri",
+    "Standarisasi Material & Kodifikasi SAP/FORCA",
+  ],
+  spesialisasi_kompetensi: [
+    "Sertifikasi Kompetensi Kelistrikan & Instrumentasi Industri",
+    "Standarisasi Material & Kodifikasi SAP/FORCA",
+    "Manajemen Pengadaan & Estimasi HPP / BOQ",
+  ],
+  foto_url: satriaRedAvatar,
   foto_position: "center center",
+  judul_tentang_saya: "Tentang Saya",
+  judul_pendidikan: "Riwayat Pendidikan",
+  judul_pengalaman: "Pengalaman Kerja",
+  judul_keahlian: "Keahlian Utama",
+  judul_kompetensi: "Spesialisasi Kompetensi",
 };
 
 export function createDefaultCVForUser(
@@ -141,5 +192,10 @@ export function createDefaultCVForUser(
     ],
     foto_url: null,
     foto_position: "center center",
+    judul_tentang_saya: "Tentang Saya",
+    judul_pendidikan: "1. Riwayat Pendidikan",
+    judul_pengalaman: "2. Pengalaman Kerja",
+    judul_keahlian: "3. Keahlian Utama",
+    judul_kompetensi: "4. Spesialisasi Kompetensi",
   };
 }

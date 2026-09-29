@@ -11,7 +11,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 
-export const Route = createFileRoute("/_authenticated/notulen")({ head: () => pageHead("Notulen", "Catat dan tinjau hasil rapat di NOURA."), component: Notulen });
+export const Route = createFileRoute("/_authenticated/notulen")({
+  head: () => pageHead("Notulen", "Catat dan tinjau hasil rapat di NOURA."),
+  component: Notulen,
+});
 
 type Item = {
   id: string;
@@ -46,7 +49,9 @@ function Notulen() {
 
   const tambah = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.from("notulen").insert({ ...form, dibuat_oleh: effectiveUserId });
+      const { error } = await supabase
+        .from("notulen")
+        .insert({ ...form, dibuat_oleh: effectiveUserId });
       if (error) throw error;
     },
     onSuccess: () => {

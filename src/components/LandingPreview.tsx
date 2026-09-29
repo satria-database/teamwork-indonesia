@@ -36,10 +36,14 @@ export function LandingPreview({ config, cvData }: LandingPreviewProps) {
 
   const isSectionEnabled = (id: LandingSectionId): boolean => {
     switch (id) {
-      case "hero": return config.showHeroSection;
-      case "cv": return config.showCVSection;
-      case "skills": return config.showSkillsSection;
-      default: return true;
+      case "hero":
+        return config.showHeroSection;
+      case "cv":
+        return config.showCVSection;
+      case "skills":
+        return config.showSkillsSection;
+      default:
+        return true;
     }
   };
 
@@ -70,7 +74,14 @@ export function LandingPreview({ config, cvData }: LandingPreviewProps) {
               case "cv":
                 return <PreviewCV key={sectionId} config={config} cv={cv} />;
               case "skills":
-                return <PreviewSimple key={sectionId} icon={Cpu} label={meta?.label || "Keahlian"} color="amber" />;
+                return (
+                  <PreviewSimple
+                    key={sectionId}
+                    icon={Cpu}
+                    label={meta?.label || "Keahlian"}
+                    color="amber"
+                  />
+                );
               default:
                 return null;
             }
@@ -81,32 +92,69 @@ export function LandingPreview({ config, cvData }: LandingPreviewProps) {
   );
 }
 
-/* --- Hero --- */
+/* --- Hero (Lampiran 2) --- */
 function PreviewHero({ config, cv }: { config: LandingPageConfig; cv: CVData }) {
   return (
-    <div className="px-6 py-8 text-center bg-gradient-to-b from-white to-slate-50/50 dark:from-slate-900 dark:to-slate-950 border-b border-slate-200/60 dark:border-slate-800">
-      <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-[10px] font-medium text-slate-500 mb-3">
-        <span className="size-1.5 rounded-full bg-emerald-500" />
-        <span className="font-semibold text-slate-700 dark:text-slate-200">
-          {cv.nama_lengkap || "Satria Nur Ardiansyah"}
-        </span>
-        <span className="text-slate-300">•</span>
-        <span>{config.heroBadgeText || cv.headline || "Technical Data Support"}</span>
-      </div>
-      <h1 className="text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white">
-        {config.heroTitle || "WorkSpace & Portfolio"}
+    <div className="px-5 py-6 bg-gradient-to-b from-white to-slate-50/50 dark:from-slate-900 dark:to-slate-950 border-b border-slate-200/60 dark:border-slate-800 text-left">
+      <h1 className="text-lg font-extrabold tracking-tight text-slate-900 dark:text-white mb-4">
+        {config.heroTitle || "Workspace & Portofolio"}
       </h1>
-      <p className="mt-2 text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto leading-relaxed">
-        {config.heroSubtitle ||
-          "Catatan pekerjaan, jadwal, dokumen, dan portofolio saya dalam satu tempat."}
-      </p>
-      <div className="mt-4 flex items-center justify-center gap-2">
-        <span className="px-3 py-1.5 rounded-xl bg-indigo-600 text-white text-[10px] font-semibold">
-          Jelajahi Workspace
-        </span>
-        <span className="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-[10px] font-semibold">
-          Lihat Portofolio CV
-        </span>
+
+      <div className="flex items-start justify-between gap-3 pb-3 border-b border-slate-100 dark:border-slate-800">
+        <div className="flex items-center gap-3">
+          <div className="relative shrink-0">
+            <div className="size-11 rounded-full bg-rose-600 flex items-center justify-center text-white font-bold text-xs ring-1 ring-slate-200 dark:ring-slate-700">
+              {(config.heroName || cv.nama_lengkap || "SNA")
+                .split(" ")
+                .map((w) => w[0])
+                .slice(0, 2)
+                .join("")}
+            </div>
+          </div>
+
+          <div>
+            <div className="flex items-center gap-1">
+              <span className="text-xs font-bold text-slate-900 dark:text-white uppercase truncate">
+                {config.heroName || cv.nama_lengkap || "SATRIA NUR ARDIANSYAH"}
+              </span>
+            </div>
+            <p className="text-[10px] text-slate-500">Jabatan saat ini :</p>
+            <p className="text-[11px] font-bold text-slate-800 dark:text-slate-100">
+              {config.heroCurrentJobTitle || "Cataloger Elins"}
+            </p>
+            <p className="text-[10px] text-slate-400 truncate">
+              {config.heroCurrentCompany || "PT Sonar Persada Manunggal"}
+            </p>
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-1 shrink-0">
+          <span className="px-2.5 py-1 rounded-full bg-blue-600 text-white text-[9px] font-semibold text-center">
+            Jelajahi Workspace
+          </span>
+          <span className="px-2.5 py-1 rounded-full border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-[9px] font-medium text-center">
+            Lihat Portofolio CV
+          </span>
+        </div>
+      </div>
+
+      <div className="w-8 h-0.5 bg-blue-600 rounded-full my-2.5" />
+
+      <div>
+        <p className="text-[11px] font-bold text-slate-900 dark:text-white mb-1.5">
+          {config.heroJobSectionTitle || "Job saat ini :"}
+        </p>
+        <ul className="space-y-1">
+          {(config.heroJobResponsibilities || []).slice(0, 3).map((job, idx) => (
+            <li
+              key={idx}
+              className="flex items-start gap-1.5 text-[10px] text-slate-600 dark:text-slate-400"
+            >
+              <span className="size-1 rounded-full bg-blue-600 mt-1 shrink-0" />
+              <span className="line-clamp-1">{job}</span>
+            </li>
+          ))}
+        </ul>
       </div>
     </div>
   );
@@ -116,21 +164,31 @@ function PreviewHero({ config, cv }: { config: LandingPageConfig; cv: CVData }) 
 function PreviewCV({ config, cv }: { config: LandingPageConfig; cv: CVData }) {
   return (
     <div className="px-6 py-5 bg-white dark:bg-slate-900/60 border-b border-slate-200/60 dark:border-slate-800">
-      <div className="flex items-center gap-1.5 mb-2">
-        <UserCheck className="size-3 text-indigo-500" />
-        <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">
-          Curriculum Vitae Resmi
-        </span>
+      <div className="mb-2">
+        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
+          CURRICULUM VITAE
+        </p>
+        <p className="text-xs font-extrabold text-slate-900 dark:text-white uppercase">
+          {cv.nama_lengkap || "SATRIA NUR ARDIANSYAH"}
+        </p>
       </div>
 
       <div className="rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-3">
         {/* Identity */}
         <div className="flex items-center gap-2.5 pb-2.5 border-b border-slate-200 dark:border-slate-800">
           <div className="size-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-600 flex items-center justify-center text-white font-black text-xs shrink-0">
-            {cv.nama_lengkap.split(" ").map((w) => w[0]).filter(Boolean).slice(0, 3).join("").toUpperCase()}
+            {cv.nama_lengkap
+              .split(" ")
+              .map((w) => w[0])
+              .filter(Boolean)
+              .slice(0, 3)
+              .join("")
+              .toUpperCase()}
           </div>
           <div className="min-w-0">
-            <p className="text-xs font-bold text-slate-900 dark:text-white truncate">{cv.nama_lengkap}</p>
+            <p className="text-xs font-bold text-slate-900 dark:text-white truncate">
+              {cv.nama_lengkap}
+            </p>
             <p className="text-[10px] text-indigo-500 truncate">{cv.headline}</p>
           </div>
           <span className="ml-auto inline-flex items-center gap-0.5 text-[8px] text-emerald-500">
@@ -170,8 +228,12 @@ function PreviewCV({ config, cv }: { config: LandingPageConfig; cv: CVData }) {
             <div className="space-y-1.5">
               {cv.pengalaman.slice(0, 2).map((exp) => (
                 <div key={exp.id}>
-                  <p className="text-[10px] font-bold text-slate-800 dark:text-slate-100">{exp.posisi}</p>
-                  <p className="text-[9px] text-slate-400">{exp.perusahaan} • {exp.periode}</p>
+                  <p className="text-[10px] font-bold text-slate-800 dark:text-slate-100">
+                    {exp.posisi}
+                  </p>
+                  <p className="text-[9px] text-slate-400">
+                    {exp.perusahaan} • {exp.periode}
+                  </p>
                 </div>
               ))}
             </div>
@@ -187,7 +249,9 @@ function PreviewCV({ config, cv }: { config: LandingPageConfig; cv: CVData }) {
             <div className="grid grid-cols-2 gap-1.5">
               {cv.pendidikan.slice(0, 2).map((edu) => (
                 <div key={edu.id}>
-                  <p className="text-[10px] font-bold text-slate-800 dark:text-slate-100 truncate">{edu.institusi}</p>
+                  <p className="text-[10px] font-bold text-slate-800 dark:text-slate-100 truncate">
+                    {edu.institusi}
+                  </p>
                   <p className="text-[9px] text-indigo-400 truncate">{edu.jurusan}</p>
                 </div>
               ))}
@@ -202,11 +266,16 @@ function PreviewCV({ config, cv }: { config: LandingPageConfig; cv: CVData }) {
               {config.skillsHeader || "Keahlian Utama"}
             </p>
             <div className="flex flex-wrap gap-1">
-              {(config.skillsBadges.length > 0 ? config.skillsBadges : cv.keahlian).slice(0, 6).map((skill, idx) => (
-                <span key={idx} className="text-[9px] px-1.5 py-0.5 rounded-md bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-300 border border-indigo-100 dark:border-indigo-900">
-                  {skill}
-                </span>
-              ))}
+              {(config.skillsBadges.length > 0 ? config.skillsBadges : cv.keahlian)
+                .slice(0, 6)
+                .map((skill, idx) => (
+                  <span
+                    key={idx}
+                    className="text-[9px] px-1.5 py-0.5 rounded-md bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-300 border border-indigo-100 dark:border-indigo-900"
+                  >
+                    {skill}
+                  </span>
+                ))}
             </div>
           </div>
         )}
@@ -221,31 +290,43 @@ function PreviewCV({ config, cv }: { config: LandingPageConfig; cv: CVData }) {
               {config.specializationItems.map((item, idx) => (
                 <div key={idx} className="flex items-start gap-1.5">
                   <CheckCircle2 className="size-2.5 text-emerald-500 shrink-0 mt-0.5" />
-                  <span className="text-[9px] text-slate-500 dark:text-slate-400 leading-relaxed">{item}</span>
+                  <span className="text-[9px] text-slate-500 dark:text-slate-400 leading-relaxed">
+                    {item}
+                  </span>
                 </div>
               ))}
             </div>
           </div>
         )}
-
       </div>
     </div>
   );
 }
 
 /* --- Simple section placeholder --- */
-function PreviewSimple({ icon: Icon, label, color }: { icon: typeof Sparkles; label: string; color: string }) {
+function PreviewSimple({
+  icon: Icon,
+  label,
+  color,
+}: {
+  icon: typeof Sparkles;
+  label: string;
+  color: string;
+}) {
   const colorMap: Record<string, string> = {
-    violet: "bg-violet-50 dark:bg-violet-950/40 text-violet-600 dark:text-violet-400 border-violet-100 dark:border-violet-900",
-    amber: "bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 border-amber-100 dark:border-amber-900",
+    violet:
+      "bg-violet-50 dark:bg-violet-950/40 text-violet-600 dark:text-violet-400 border-violet-100 dark:border-violet-900",
+    amber:
+      "bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 border-amber-100 dark:border-amber-900",
   };
   return (
     <div className="px-6 py-4 border-b border-slate-200/60 dark:border-slate-800">
-      <div className={`flex items-center gap-2 p-2.5 rounded-xl border ${colorMap[color] || colorMap["violet"]}`}>
+      <div
+        className={`flex items-center gap-2 p-2.5 rounded-xl border ${colorMap[color] || colorMap["violet"]}`}
+      >
         <Icon className="size-3.5" />
         <span className="text-[10px] font-bold">{label}</span>
       </div>
     </div>
   );
 }
-

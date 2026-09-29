@@ -178,7 +178,8 @@ export function LandingConfigModal({
           <div className="flex items-center gap-2 text-indigo-900 dark:text-indigo-200">
             <SlidersHorizontal className="size-4 text-indigo-600 dark:text-indigo-400 shrink-0" />
             <span>
-              Tersedia menu khusus di sidebar: <strong>Tata Letak Landing</strong> untuk mengatur susunan, teks hero, dan urutan.
+              Tersedia menu khusus di sidebar: <strong>Tata Letak Landing</strong> untuk mengatur
+              susunan, teks hero, dan urutan.
             </span>
           </div>
           <Button
@@ -262,9 +263,7 @@ export function LandingConfigModal({
                           <p className="text-xs font-bold text-slate-900 dark:text-white truncate">
                             {meta?.label || sectionId}
                           </p>
-                          <p className="text-[11px] text-slate-400 truncate">
-                            {meta?.desc || ""}
-                          </p>
+                          <p className="text-[11px] text-slate-400 truncate">{meta?.desc || ""}</p>
                         </div>
                       </div>
 

@@ -53,7 +53,11 @@ import {
 } from "@/lib/upcomingWork";
 import { fetchWorkLogs, startWorkFromUpcoming, type WorkLog } from "@/lib/workLogs";
 
-export const Route = createFileRoute("/_authenticated/mendatang")({ head: () => pageHead("Pekerjaan Mendatang", "Pantau rencana pekerjaan yang akan datang di NOURA."), component: Mendatang });
+export const Route = createFileRoute("/_authenticated/mendatang")({
+  head: () =>
+    pageHead("Pekerjaan Mendatang", "Pantau rencana pekerjaan yang akan datang di NOURA."),
+  component: Mendatang,
+});
 
 function Mendatang() {
   const { isAdmin, user, effectiveUserId } = useAuth();

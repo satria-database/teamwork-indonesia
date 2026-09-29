@@ -37,7 +37,10 @@ import { ScheduledWorkSection } from "@/components/work-log/ScheduledWorkSection
 import { WorkLogImportDialog } from "@/components/work-log/WorkLogImportDialog";
 import { downloadWorkLogTemplate } from "@/lib/workLogImport";
 
-export const Route = createFileRoute("/_authenticated/catatan")({ head: () => pageHead("Catatan Pekerjaan", "Kelola catatan dan riwayat pekerjaan di NOURA."), component: Catatan });
+export const Route = createFileRoute("/_authenticated/catatan")({
+  head: () => pageHead("Catatan Pekerjaan", "Kelola catatan dan riwayat pekerjaan di NOURA."),
+  component: Catatan,
+});
 
 function Catatan() {
   const { isAdmin, user, effectiveUserId } = useAuth();

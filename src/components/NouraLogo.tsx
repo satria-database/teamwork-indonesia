@@ -21,7 +21,8 @@ export function NouraLogo({ className, size = "md" }: NouraLogoProps) {
         className,
       )}
     >
-      <span className="text-blue-600 dark:text-blue-400">N</span>O<span className="text-blue-600 dark:text-blue-400">UR</span>
+      <span className="text-blue-600 dark:text-blue-400">N</span>O
+      <span className="text-blue-600 dark:text-blue-400">UR</span>
       <span className="relative inline-flex">
         A
         <span
