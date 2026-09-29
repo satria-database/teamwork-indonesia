@@ -56,6 +56,8 @@ import {
   type LandingPageConfig,
 } from "@/lib/landingConfig";
 import { NouraLogo } from "@/components/NouraLogo";
+import { LandingPhotoSettings } from "@/components/LandingPhotoSettings";
+import { AdjustedAvatar } from "@/components/AdjustedAvatar";
 import satriaRedAvatar from "@/assets/images/satria_avatar_red_1790582692896.jpg";
 
 export const Route = createFileRoute("/_authenticated/pengaturan")({
@@ -558,6 +560,18 @@ function PengaturanPage() {
         </div>
       </div>
 
+      <LandingPhotoSettings
+        user={user}
+        config={heroConfig}
+        onConfigChange={setHeroConfig}
+        fallbackUrls={{
+          heroAvatarUrl: avatarUrl || profile?.avatar_url || satriaRedAvatar,
+          cvAvatarUrl: satriaRedAvatar,
+          contactAvatarUrl:
+            heroConfig.heroAvatarUrl || avatarUrl || profile?.avatar_url || satriaRedAvatar,
+        }}
+      />
+
       {/* Hero & Portofolio Halaman Depan (Sesuai Lampiran 2) */}
       <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-7 border border-slate-100 dark:border-slate-800/80 shadow-xs">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-slate-100 dark:border-slate-800/60">
@@ -805,7 +819,7 @@ function PengaturanPage() {
 
                 <div className="flex items-center gap-3">
                   <div className="relative shrink-0">
-                    <img
+                    <AdjustedAvatar
                       src={
                         heroConfig.heroAvatarUrl ||
                         avatarUrl ||
@@ -813,7 +827,8 @@ function PengaturanPage() {
                         satriaRedAvatar
                       }
                       alt={heroConfig.heroName}
-                      className="size-14 rounded-full object-cover shadow-sm ring-1 ring-slate-200 dark:ring-slate-700"
+                      adjust={heroConfig.heroAvatarAdjust}
+                      className="size-14 rounded-full shadow-sm ring-1 ring-slate-200 dark:ring-slate-700"
                     />
                   </div>
 
@@ -1031,10 +1046,20 @@ function PengaturanPage() {
 
               <div className="bg-white dark:bg-slate-900 rounded-2xl p-4 border border-slate-200/80 dark:border-slate-800 space-y-3.5">
                 <div className="flex items-center gap-3 pb-3 border-b border-slate-100 dark:border-slate-800">
-                  <img
-                    src={heroConfig.heroAvatarUrl || avatarUrl || satriaRedAvatar}
+                  <AdjustedAvatar
+                    src={
+                      heroConfig.contactAvatarUrl ||
+                      heroConfig.heroAvatarUrl ||
+                      avatarUrl ||
+                      satriaRedAvatar
+                    }
                     alt={heroConfig.heroName}
-                    className="size-12 rounded-full object-cover shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 shrink-0"
+                    adjust={
+                      heroConfig.contactAvatarUrl
+                        ? heroConfig.contactAvatarAdjust
+                        : (heroConfig.contactAvatarAdjust ?? heroConfig.heroAvatarAdjust)
+                    }
+                    className="size-12 rounded-full shadow-sm ring-1 ring-slate-200 dark:ring-slate-700"
                   />
                   <div className="min-w-0">
                     <p className="text-xs font-bold text-slate-900 dark:text-white uppercase truncate">

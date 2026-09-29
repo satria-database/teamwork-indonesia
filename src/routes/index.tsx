@@ -35,6 +35,7 @@ import {
   type LandingPageConfig,
 } from "@/lib/landingConfig";
 import { LandingConfigModal } from "@/components/LandingConfigModal";
+import { AdjustedAvatar } from "@/components/AdjustedAvatar";
 import hero3dVectorTransparent from "@/assets/images/workspace_hero_vector_transparent.png";
 import satriaRedAvatar from "@/assets/images/satria_avatar_red_1790582692896.jpg";
 
@@ -287,7 +288,7 @@ export default function LandingPage() {
                   {/* Foto & Detail Profil (Tanpa Simbol Hijau Keduanya) */}
                   <div className="flex items-center gap-4">
                     <div className="relative shrink-0">
-                      <img
+                      <AdjustedAvatar
                         src={
                           landingConfig.heroAvatarUrl ||
                           profile?.avatar_url ||
@@ -295,7 +296,8 @@ export default function LandingPage() {
                           satriaRedAvatar
                         }
                         alt={landingConfig.heroName || "Satria Nur Ardiansyah"}
-                        className="size-20 sm:size-24 rounded-full object-cover shadow-sm ring-1 ring-slate-200 dark:ring-slate-700"
+                        adjust={landingConfig.heroAvatarAdjust}
+                        className="size-20 sm:size-24 rounded-full shadow-sm ring-1 ring-slate-200 dark:ring-slate-700"
                       />
                     </div>
 
@@ -458,12 +460,13 @@ export default function LandingPage() {
 
                     {/* Foto diposisikan tepat di tengah vertikal antara baris alamat dan email (Lampiran 1) */}
                     <div className="flex items-center gap-4 sm:gap-5">
-                      {cvData.foto_url ? (
-                        <img
-                          src={cvData.foto_url}
+                      {landingConfig.cvAvatarUrl || cvData.foto_url ? (
+                        <AdjustedAvatar
+                          src={landingConfig.cvAvatarUrl || cvData.foto_url || undefined}
                           alt={cvData.nama_lengkap || "Profile"}
-                          className="size-20 sm:size-24 rounded-2xl object-cover shadow-sm shrink-0 border-2 border-slate-200/80 dark:border-slate-700/80 self-center"
-                          style={{ objectPosition: cvData.foto_position || "center center" }}
+                          adjust={landingConfig.cvAvatarAdjust}
+                          fallbackPosition={cvData.foto_position || "center center"}
+                          className="size-20 sm:size-24 rounded-2xl shadow-sm border-2 border-slate-200/80 dark:border-slate-700/80 self-center"
                         />
                       ) : (
                         <div className="size-20 sm:size-24 rounded-2xl bg-gradient-to-tr from-indigo-600 via-indigo-700 to-violet-600 flex items-center justify-center text-white font-black text-2xl sm:text-3xl shadow-sm tracking-wider shrink-0 self-center">
@@ -747,15 +750,21 @@ export default function LandingPage() {
                 {/* Kolom Kiri: Profil Singkat (Tanpa Centang Hijau & Tanpa Titik Hijau) */}
                 <div className="lg:col-span-4 xl:col-span-4 flex items-center gap-4">
                   <div className="relative shrink-0">
-                    <img
+                    <AdjustedAvatar
                       src={
+                        landingConfig.contactAvatarUrl ||
                         landingConfig.heroAvatarUrl ||
                         profile?.avatar_url ||
                         cvData.foto_url ||
                         satriaRedAvatar
                       }
                       alt={landingConfig.heroName || "Satria Nur Ardiansyah"}
-                      className="size-16 sm:size-20 rounded-full object-cover shadow-sm ring-1 ring-slate-200 dark:ring-slate-700"
+                      adjust={
+                        landingConfig.contactAvatarUrl
+                          ? landingConfig.contactAvatarAdjust
+                          : (landingConfig.contactAvatarAdjust ?? landingConfig.heroAvatarAdjust)
+                      }
+                      className="size-16 sm:size-20 rounded-full shadow-sm ring-1 ring-slate-200 dark:ring-slate-700"
                     />
                   </div>
 

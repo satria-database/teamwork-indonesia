@@ -193,6 +193,7 @@ export async function uploadAvatarFile(user: User, file: File): Promise<string> 
     throw new Error("Format foto tidak didukung. Harap gunakan file PNG atau JPG.");
   }
 
+  file = await compressImage(file);
   const ext = file.name.split(".").pop()?.toLowerCase() || "png";
   const fileName = `profile_${Date.now()}.${ext}`;
   const filePath = `${user.id}/${fileName}`;
@@ -238,6 +239,30 @@ export async function deleteAvatarFile(
     }
   } catch (err) {
     console.warn("Gagal menghapus file dari storage:", err);
+  }
+}
+
+async function compressImage(file: File, maxSize = 800, quality = 0.85): Promise<File> {
+  if (typeof window === "undefined" || file.type === "image/gif") return file;
+  try {
+    const bitmap = await createImageBitmap(file);
+    const scale = Math.min(1, maxSize / Math.max(bitmap.width, bitmap.height));
+    const width = Math.round(bitmap.width * scale);
+    const height = Math.round(bitmap.height * scale);
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return file;
+    ctx.drawImage(bitmap, 0, 0, width, height);
+    bitmap.close();
+    const blob = await new Promise<Blob | null>((resolve) =>
+      canvas.toBlob(resolve, "image/jpeg", quality),
+    );
+    if (!blob || blob.size >= file.size) return file;
+    return new File([blob], file.name.replace(/\.\w+$/, "") + ".jpg", { type: "image/jpeg" });
+  } catch {
+    return file;
   }
 }
 
