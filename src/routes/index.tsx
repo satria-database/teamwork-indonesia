@@ -16,6 +16,7 @@ import {
   FileBadge,
   SlidersHorizontal,
   CalendarDays,
+  Calendar,
   Clock3,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -35,9 +36,38 @@ import {
   type LandingPageConfig,
 } from "@/lib/landingConfig";
 import { LandingConfigModal } from "@/components/LandingConfigModal";
-import { AdjustedAvatar } from "@/components/AdjustedAvatar";
 import hero3dVectorTransparent from "@/assets/images/workspace_hero_vector_transparent.png";
 import satriaRedAvatar from "@/assets/images/satria_avatar_red_1790582692896.jpg";
+import { getHighResolutionAvatarUrl, getAvatarSrcSet } from "@/lib/avatarUtils";
+
+function formatIndonesianWorkDate(dateStr: string): string {
+  if (!dateStr) return "";
+  const clean = dateStr.trim();
+  const match = clean.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+  if (match) {
+    const year = match[1];
+    const month = parseInt(match[2], 10);
+    const day = parseInt(match[3], 10);
+    const months = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "Mei",
+      "Jun",
+      "Jul",
+      "Agu",
+      "Sep",
+      "Okt",
+      "Nov",
+      "Des",
+    ];
+    if (month >= 1 && month <= 12) {
+      return `${day} ${months[month - 1]} ${year}`;
+    }
+  }
+  return clean;
+}
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -72,6 +102,28 @@ export default function LandingPage() {
   // CV data state
   const [cvData, setCvData] = useState<CVData>(DEFAULT_CV_SATRIA);
 
+  // 1 Pengaturan Foto Profil Terpadu untuk 3 Foto di Landing Page (Hero, CV & Hubungi Saya)
+  const unifiedLandingAvatarUrl =
+    getHighResolutionAvatarUrl(landingConfig.heroAvatarUrl) ||
+    getHighResolutionAvatarUrl(landingConfig.contactAvatarUrl) ||
+    getHighResolutionAvatarUrl(profile?.avatar_url) ||
+    getHighResolutionAvatarUrl(cvData.foto_url) ||
+    satriaRedAvatar;
+
+  const unifiedLandingAvatarPosition =
+    landingConfig.heroAvatarPosition ||
+    landingConfig.contactAvatarPosition ||
+    cvData.foto_position ||
+    profile?.avatar_position ||
+    "50% 50%";
+
+  const unifiedLandingAvatarScale =
+    landingConfig.heroAvatarScale ??
+    landingConfig.contactAvatarScale ??
+    cvData.foto_scale ??
+    profile?.avatar_scale ??
+    1;
+
   // Open config modal if URL contains ?config=true and load configs (local + cloud)
   useEffect(() => {
     // Safely load user's custom landing page config from client storage without SSR mismatch
@@ -101,9 +153,37 @@ export default function LandingPage() {
         setLandingConfig(getSafeLandingConfig(customEvent.detail));
       }
     };
+    const handleAvatarEvent = (e: Event) => {
+      const customEvent = e as CustomEvent<{
+        avatarUrl: string | null;
+        position?: string;
+        scale?: number;
+      }>;
+      if (customEvent.detail) {
+        const { avatarUrl, position, scale } = customEvent.detail;
+        setLandingConfig((prev) => ({
+          ...prev,
+          heroAvatarUrl: avatarUrl,
+          contactAvatarUrl: avatarUrl,
+          heroAvatarPosition: position || prev.heroAvatarPosition,
+          contactAvatarPosition: position || prev.contactAvatarPosition,
+          heroAvatarScale: scale ?? prev.heroAvatarScale,
+          contactAvatarScale: scale ?? prev.contactAvatarScale,
+        }));
+        setCvData((prev) => ({
+          ...prev,
+          foto_url: avatarUrl || prev.foto_url,
+          foto_position: position || prev.foto_position,
+          foto_scale: scale ?? prev.foto_scale,
+        }));
+      }
+    };
+
     window.addEventListener("noura_landing_config_updated", handleConfigEvent);
+    window.addEventListener("noura_unified_avatar_updated", handleAvatarEvent);
     return () => {
       window.removeEventListener("noura_landing_config_updated", handleConfigEvent);
+      window.removeEventListener("noura_unified_avatar_updated", handleAvatarEvent);
     };
   }, []);
 
@@ -287,17 +367,36 @@ export default function LandingPage() {
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 pb-6">
                   {/* Foto & Detail Profil (Tanpa Simbol Hijau Keduanya) */}
                   <div className="flex items-center gap-4">
-                    <div className="relative shrink-0">
-                      <AdjustedAvatar
-                        src={
-                          landingConfig.heroAvatarUrl ||
-                          profile?.avatar_url ||
-                          cvData.foto_url ||
-                          satriaRedAvatar
-                        }
+                    <div
+                      className="relative shrink-0 size-28 sm:size-32 rounded-full overflow-hidden shadow-sm ring-2 ring-slate-200/90 dark:ring-slate-700 bg-slate-100 dark:bg-slate-800"
+                      style={{
+                        borderRadius: "50%",
+                        overflow: "hidden",
+                        isolation: "isolate",
+                      }}
+                    >
+                      <img
+                        src={unifiedLandingAvatarUrl}
+                        srcSet={getAvatarSrcSet(unifiedLandingAvatarUrl)}
                         alt={landingConfig.heroName || "Satria Nur Ardiansyah"}
-                        adjust={landingConfig.heroAvatarAdjust}
-                        className="size-20 sm:size-24 rounded-full shadow-sm ring-1 ring-slate-200 dark:ring-slate-700"
+                        className="size-full select-none transition-transform"
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          objectFit: "cover",
+                          objectPosition: unifiedLandingAvatarPosition,
+                          transform:
+                            unifiedLandingAvatarScale && unifiedLandingAvatarScale !== 1
+                              ? `scale(${unifiedLandingAvatarScale})`
+                              : undefined,
+                          transformOrigin: unifiedLandingAvatarPosition,
+                          imageRendering: "auto",
+                          WebkitBackfaceVisibility: "hidden",
+                          backfaceVisibility: "hidden",
+                        }}
+                        loading="eager"
+                        decoding="async"
+                        draggable={false}
                       />
                     </div>
 
@@ -451,61 +550,115 @@ export default function LandingPage() {
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-12 lg:items-start">
               {/* Profile Master Card (Kolom Kiri 7 Col - Geser ke Kiri) */}
               <div className="min-w-0 lg:col-span-7 xl:col-span-7 bg-slate-50 dark:bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-200/80 dark:border-slate-800 shadow-sm">
-                {/* Top Identity Row Sesuai Lampiran 1 */}
-                <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 pb-6 border-b border-slate-200/80 dark:border-slate-800">
-                  <div className="space-y-3.5 w-full">
-                    <h3 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight uppercase">
+                {/* Top Identity Row Sesuai Lampiran / image.png */}
+                <div className="flex flex-col sm:flex-row items-start gap-5 sm:gap-7 pb-6 border-b border-slate-200/80 dark:border-slate-800">
+                  {/* Foto Profil Berlatar Merah (Sisi Kiri) - Selaras 1 Pengaturan Landing Page */}
+                  <div className="shrink-0 self-center sm:self-start pt-0.5">
+                    {unifiedLandingAvatarUrl ? (
+                      <div className="w-28 h-36 sm:w-32 sm:h-42 rounded-2xl overflow-hidden shadow-md border border-slate-200/80 dark:border-slate-700/80 bg-slate-100 dark:bg-slate-800">
+                        <img
+                          src={unifiedLandingAvatarUrl}
+                          srcSet={getAvatarSrcSet(unifiedLandingAvatarUrl)}
+                          alt={cvData.nama_lengkap || landingConfig.heroName || "Profile"}
+                          className="size-full select-none transition-transform"
+                          style={{
+                            width: "100%",
+                            height: "100%",
+                            objectFit: "cover",
+                            objectPosition: unifiedLandingAvatarPosition,
+                            transform:
+                              unifiedLandingAvatarScale && unifiedLandingAvatarScale !== 1
+                                ? `scale(${unifiedLandingAvatarScale})`
+                                : undefined,
+                            transformOrigin: unifiedLandingAvatarPosition,
+                            imageRendering: "auto",
+                            WebkitBackfaceVisibility: "hidden",
+                            backfaceVisibility: "hidden",
+                          }}
+                          loading="eager"
+                          decoding="async"
+                          draggable={false}
+                        />
+                      </div>
+                    ) : (
+                      <div className="w-28 h-36 sm:w-32 sm:h-42 rounded-2xl bg-gradient-to-tr from-indigo-600 via-indigo-700 to-violet-600 flex items-center justify-center text-white font-black text-3xl shadow-md tracking-wider">
+                        {cvData.nama_lengkap
+                          ? cvData.nama_lengkap
+                              .split(" ")
+                              .map((w) => w[0])
+                              .filter(Boolean)
+                              .slice(0, 3)
+                              .join("")
+                              .toUpperCase()
+                          : "SNA"}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Sisi Kanan: Nama Lengkap & 4 Contact Pills Bersih */}
+                  <div className="space-y-3 flex-1 min-w-0">
+                    <h3 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight uppercase">
                       {cvData.nama_lengkap || "SATRIA NUR ARDIANSYAH"}
                     </h3>
 
-                    {/* Foto diposisikan tepat di tengah vertikal antara baris alamat dan email (Lampiran 1) */}
-                    <div className="flex items-center gap-4 sm:gap-5">
-                      {landingConfig.cvAvatarUrl || cvData.foto_url ? (
-                        <AdjustedAvatar
-                          src={landingConfig.cvAvatarUrl || cvData.foto_url || undefined}
-                          alt={cvData.nama_lengkap || "Profile"}
-                          adjust={landingConfig.cvAvatarAdjust}
-                          fallbackPosition={cvData.foto_position || "center center"}
-                          className="size-20 sm:size-24 rounded-2xl shadow-sm border-2 border-slate-200/80 dark:border-slate-700/80 self-center"
-                        />
-                      ) : (
-                        <div className="size-20 sm:size-24 rounded-2xl bg-gradient-to-tr from-indigo-600 via-indigo-700 to-violet-600 flex items-center justify-center text-white font-black text-2xl sm:text-3xl shadow-sm tracking-wider shrink-0 self-center">
-                          {cvData.nama_lengkap
-                            ? cvData.nama_lengkap
-                                .split(" ")
-                                .map((w) => w[0])
-                                .filter(Boolean)
-                                .slice(0, 3)
-                                .join("")
-                                .toUpperCase()
-                            : "SNA"}
-                        </div>
-                      )}
+                    {landingConfig.showCVContactInfo && (
+                      <div className="flex flex-col items-start gap-2 text-xs sm:text-sm text-slate-800 dark:text-slate-200">
+                        {/* 1. Alamat */}
+                        {cvData.alamat && (
+                          <div className="inline-flex items-start gap-2.5 px-4 py-2 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200/90 dark:border-slate-700/80 shadow-2xs max-w-md">
+                            <MapPin className="size-4 text-indigo-500 shrink-0 mt-0.5" />
+                            <span className="font-medium leading-snug">{cvData.alamat}</span>
+                          </div>
+                        )}
 
-                      {/* Contact Pills Disusun Vertikal Sesuai Lampiran 1 */}
-                      {landingConfig.showCVContactInfo && (
-                        <div className="flex flex-col items-start gap-2 text-xs text-slate-600 dark:text-slate-300">
-                          {cvData.alamat && (
-                            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700/80 shadow-2xs">
-                              <MapPin className="size-3.5 text-indigo-500 shrink-0" />
-                              <span>{cvData.alamat}</span>
-                            </div>
-                          )}
-                          {cvData.email && (
-                            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700/80 shadow-2xs">
-                              <Mail className="size-3.5 text-indigo-500 shrink-0" />
-                              <span>{cvData.email}</span>
-                            </div>
-                          )}
-                          {cvData.telepon && (
-                            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700/80 shadow-2xs">
-                              <Phone className="size-3.5 text-indigo-500 shrink-0" />
-                              <span>{cvData.telepon}</span>
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
+                        {/* 2. Email */}
+                        {cvData.email && (
+                          <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-white dark:bg-slate-800 border border-slate-200/90 dark:border-slate-700/80 shadow-2xs">
+                            <Mail className="size-4 text-indigo-500 shrink-0" />
+                            <a
+                              href={`mailto:${cvData.email}`}
+                              className="font-medium hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+                            >
+                              {cvData.email}
+                            </a>
+                          </div>
+                        )}
+
+                        {/* 3. Telepon */}
+                        {cvData.telepon && (
+                          <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-white dark:bg-slate-800 border border-slate-200/90 dark:border-slate-700/80 shadow-2xs">
+                            <Phone className="size-4 text-indigo-500 shrink-0" />
+                            <a
+                              href={`tel:${cvData.telepon}`}
+                              className="font-medium hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+                            >
+                              {cvData.telepon}
+                            </a>
+                          </div>
+                        )}
+
+                        {/* 4. LinkedIn */}
+                        {cvData.linkedin && (
+                          <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-white dark:bg-slate-800 border border-slate-200/90 dark:border-slate-700/80 shadow-2xs">
+                            <span className="text-[10px] font-bold bg-[#0A66C2] text-white size-4 rounded-full flex items-center justify-center shrink-0">
+                              in
+                            </span>
+                            <a
+                              href={
+                                cvData.linkedin.startsWith("http")
+                                  ? cvData.linkedin
+                                  : `https://${cvData.linkedin}`
+                              }
+                              target="_blank"
+                              rel="noreferrer"
+                              className="font-medium hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+                            >
+                              {cvData.linkedin}
+                            </a>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -625,7 +778,8 @@ export default function LandingPage() {
                           "4. Spesialisasi Kompetensi"}
                       </h4>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs text-slate-600 dark:text-slate-300">
-                        {(cvData.spesialisasi_kompetensi && cvData.spesialisasi_kompetensi.length > 0
+                        {(cvData.spesialisasi_kompetensi &&
+                        cvData.spesialisasi_kompetensi.length > 0
                           ? cvData.spesialisasi_kompetensi
                           : landingConfig.specializationItems
                         ).map((item, idx) => (
@@ -643,39 +797,45 @@ export default function LandingPage() {
                 </div>
               </div>
               {landingConfig.showYearWorkCards && (
-                <aside className="min-w-0 lg:col-span-5 xl:col-span-5 rounded-3xl border border-slate-200/80 bg-slate-50 p-6 sm:p-7 shadow-sm dark:border-slate-800 dark:bg-slate-900 lg:sticky lg:top-24">
-                  <div className="flex items-start justify-between gap-3 border-b border-slate-200/80 pb-4 dark:border-slate-800">
+                <aside className="min-w-0 lg:col-span-5 xl:col-span-5 rounded-[28px] sm:rounded-3xl border border-slate-200/90 dark:border-slate-800 bg-[#f8fafc]/90 dark:bg-slate-900/95 p-6 sm:p-7 shadow-xs lg:sticky lg:top-24">
+                  {/* Header: Label + Title + Briefcase Icon Sesuai Lampiran 2 */}
+                  <div className="flex items-start justify-between gap-4">
                     <div className="min-w-0">
-                      <p className="text-[11px] font-bold uppercase text-indigo-600 dark:text-indigo-400">
-                        Portofolio {new Date().getFullYear()}
+                      <p className="text-xs sm:text-[13px] font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">
+                        {landingConfig.yearWorkBadge || "PORTOFOLIO 2026"}
                       </p>
-                      <h3 className="mt-1 text-lg font-bold text-slate-900 dark:text-white">
+                      <h3 className="mt-1.5 text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
                         {landingConfig.yearWorkTitle || "Pekerjaan Tahun Ini"}
                       </h3>
                     </div>
-                    <div className="grid size-10 shrink-0 place-items-center rounded-xl bg-indigo-50 text-indigo-600 dark:bg-indigo-950/60 dark:text-indigo-400">
-                      <Briefcase className="size-5" />
+                    <div className="shrink-0 size-11 sm:size-12 rounded-2xl bg-[#eff2fe] dark:bg-indigo-950/70 text-[#4f46e5] dark:text-indigo-400 flex items-center justify-center border border-indigo-100/70 dark:border-indigo-900/50 shadow-2xs">
+                      <Briefcase className="size-5 sm:size-5.5 stroke-[1.8]" />
                     </div>
                   </div>
 
-                  <div className="mt-4 space-y-3">
+                  {/* Garis Pemisah Sesuai Lampiran 2 */}
+                  <div className="border-b border-slate-200/80 dark:border-slate-800 mt-5 mb-5" />
+
+                  {/* List Kartu Pekerjaan Sesuai Lampiran 2 */}
+                  <div className="space-y-4">
                     {landingConfig.yearWorkItems.length > 0 ? (
                       landingConfig.yearWorkItems.map((item) => (
                         <article
                           key={item.id}
-                          className="rounded-2xl border border-slate-200/80 bg-white p-4 dark:border-slate-700/80 dark:bg-slate-800/80"
+                          className="rounded-2xl border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 sm:p-5.5 shadow-2xs space-y-3 transition-all hover:border-slate-300 dark:hover:border-slate-700"
                         >
-                          <div className="flex items-start justify-between gap-3">
-                            <span className="text-[10px] font-semibold uppercase text-indigo-600 dark:text-indigo-400">
-                              {item.category}
+                          {/* Baris Kategori & Lencana Status */}
+                          <div className="flex items-center justify-between gap-3">
+                            <span className="text-xs font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">
+                              {item.category || "VOLUME POOLING"}
                             </span>
                             <span
-                              className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+                              className={`shrink-0 rounded-full px-3 py-0.5 text-xs font-semibold ${
                                 item.status === "selesai"
-                                  ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300"
+                                  ? "bg-[#d1fae5] text-[#065f46] dark:bg-emerald-950/80 dark:text-emerald-300"
                                   : item.status === "berjalan"
-                                    ? "bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300"
-                                    : "bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300"
+                                    ? "bg-[#fef3c7] text-[#92400e] dark:bg-amber-950/80 dark:text-amber-300"
+                                    : "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300"
                               }`}
                             >
                               {item.status === "selesai"
@@ -685,23 +845,25 @@ export default function LandingPage() {
                                   : "Direncanakan"}
                             </span>
                           </div>
-                          <h4 className="mt-2 text-sm font-bold leading-snug text-slate-900 dark:text-white">
+
+                          {/* Judul Pekerjaan */}
+                          <h4 className="text-[15px] sm:text-base font-bold text-slate-900 dark:text-white leading-snug tracking-tight">
                             {item.title}
                           </h4>
+
+                          {/* Deskripsi Rincian Pekerjaan */}
                           {item.description && (
-                            <p className="mt-1.5 text-xs leading-relaxed text-slate-500 dark:text-slate-400">
+                            <p className="text-xs sm:text-[13px] text-slate-500 dark:text-slate-400 leading-relaxed font-normal whitespace-pre-line">
                               {item.description}
                             </p>
                           )}
+
+                          {/* Tanggal dengan Icon Kalender Sesuai Lampiran 2 */}
                           {item.date && (
-                            <div className="mt-3 flex items-center gap-1.5 text-[11px] font-medium text-slate-400">
-                              <CalendarDays className="size-3.5" />
+                            <div className="flex items-center gap-1.5 text-xs font-medium text-slate-500 dark:text-slate-400 pt-0.5">
+                              <Calendar className="size-3.5 sm:size-4 text-slate-400 dark:text-slate-500 shrink-0" />
                               <time dateTime={item.date}>
-                                {new Intl.DateTimeFormat("id-ID", {
-                                  day: "numeric",
-                                  month: "short",
-                                  year: "numeric",
-                                }).format(new Date(`${item.date}T00:00:00`))}
+                                {formatIndonesianWorkDate(item.date)}
                               </time>
                             </div>
                           )}
@@ -749,22 +911,36 @@ export default function LandingPage() {
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
                 {/* Kolom Kiri: Profil Singkat (Tanpa Centang Hijau & Tanpa Titik Hijau) */}
                 <div className="lg:col-span-4 xl:col-span-4 flex items-center gap-4">
-                  <div className="relative shrink-0">
-                    <AdjustedAvatar
-                      src={
-                        landingConfig.contactAvatarUrl ||
-                        landingConfig.heroAvatarUrl ||
-                        profile?.avatar_url ||
-                        cvData.foto_url ||
-                        satriaRedAvatar
-                      }
+                  <div
+                    className="relative shrink-0 size-20 sm:size-24 rounded-full overflow-hidden shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 bg-slate-100 dark:bg-slate-800"
+                    style={{
+                      borderRadius: "50%",
+                      overflow: "hidden",
+                      isolation: "isolate",
+                    }}
+                  >
+                    <img
+                      src={unifiedLandingAvatarUrl}
+                      srcSet={getAvatarSrcSet(unifiedLandingAvatarUrl)}
                       alt={landingConfig.heroName || "Satria Nur Ardiansyah"}
-                      adjust={
-                        landingConfig.contactAvatarUrl
-                          ? landingConfig.contactAvatarAdjust
-                          : (landingConfig.contactAvatarAdjust ?? landingConfig.heroAvatarAdjust)
-                      }
-                      className="size-16 sm:size-20 rounded-full shadow-sm ring-1 ring-slate-200 dark:ring-slate-700"
+                      className="size-full select-none transition-transform"
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "cover",
+                        objectPosition: unifiedLandingAvatarPosition,
+                        transform:
+                          unifiedLandingAvatarScale && unifiedLandingAvatarScale !== 1
+                            ? `scale(${unifiedLandingAvatarScale})`
+                            : undefined,
+                        transformOrigin: unifiedLandingAvatarPosition,
+                        imageRendering: "auto",
+                        WebkitBackfaceVisibility: "hidden",
+                        backfaceVisibility: "hidden",
+                      }}
+                      loading="eager"
+                      decoding="async"
+                      draggable={false}
                     />
                   </div>
 

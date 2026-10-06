@@ -27,11 +27,14 @@ import {
   Phone,
   Clock3,
   MessageSquare,
+  SlidersHorizontal,
+  Image as ImageIcon,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import { useTheme, type ThemeMode } from "@/hooks/useTheme";
 import { UserAvatar } from "@/components/UserAvatar";
+import { PhotoPrecisionControl } from "@/components/PhotoPrecisionControl";
 import { PageHeader } from "@/components/AppShell";
 import { pageHead } from "@/lib/pageHead";
 import { Input } from "@/components/ui/input";
@@ -51,14 +54,18 @@ import { supabase } from "@/lib/supabase";
 import {
   getLandingConfig,
   saveLandingConfig,
+  saveUnifiedLandingAvatar,
   syncLandingConfigFromCloud,
   DEFAULT_LANDING_CONFIG,
   type LandingPageConfig,
 } from "@/lib/landingConfig";
 import { NouraLogo } from "@/components/NouraLogo";
-import { LandingPhotoSettings } from "@/components/LandingPhotoSettings";
-import { AdjustedAvatar } from "@/components/AdjustedAvatar";
 import satriaRedAvatar from "@/assets/images/satria_avatar_red_1790582692896.jpg";
+import {
+  getHighResolutionAvatarUrl,
+  getAvatarSrcSet,
+  optimizeAvatarImageForUpload,
+} from "@/lib/avatarUtils";
 
 export const Route = createFileRoute("/_authenticated/pengaturan")({
   head: () => pageHead("Pengaturan", "Atur profil dan preferensi akun NOURA."),
@@ -85,6 +92,19 @@ function PengaturanPage() {
   const [perusahaan, setPerusahaan] = useState("");
   const [vendor, setVendor] = useState("");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [avatarPosition, setAvatarPosition] = useState<string>("50% 50%");
+  const [avatarScale, setAvatarScale] = useState<number>(1);
+  const [showProfilePrecision, setShowProfilePrecision] = useState(false);
+
+  // Sync stored position & scale on client mount
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const storedPos = localStorage.getItem("workhub_avatar_position");
+      if (storedPos) setAvatarPosition(storedPos);
+      const storedScale = localStorage.getItem("workhub_avatar_scale");
+      if (storedScale) setAvatarScale(parseFloat(storedScale));
+    }
+  }, []);
 
   // File input ref
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -99,6 +119,24 @@ function PengaturanPage() {
   const [heroConfig, setHeroConfig] = useState<LandingPageConfig>(DEFAULT_LANDING_CONFIG);
   const [isSavingHero, setIsSavingHero] = useState(false);
 
+  // Hero & CV Photo management states
+  const heroFileInputRef = useRef<HTMLInputElement>(null);
+  const [isUploadingHeroPhoto, setIsUploadingHeroPhoto] = useState(false);
+  const [customPhotoUrlInput, setCustomPhotoUrlInput] = useState("");
+
+  // Contact Photo management states
+  const contactFileInputRef = useRef<HTMLInputElement>(null);
+  const [isUploadingContactPhoto, setIsUploadingContactPhoto] = useState(false);
+  const [customContactPhotoUrlInput, setCustomContactPhotoUrlInput] = useState("");
+
+  // Kustomisasi Judul Seksi CV
+  const [judulTentangSaya, setJudulTentangSaya] = useState("Tentang Saya");
+  const [judulPendidikan, setJudulPendidikan] = useState("1. Riwayat Pendidikan");
+  const [judulPengalaman, setJudulPengalaman] = useState("2. Pengalaman Kerja");
+  const [judulKeahlian, setJudulKeahlian] = useState("3. Keahlian Utama");
+  const [judulKompetensi, setJudulKompetensi] = useState("4. Spesialisasi Kompetensi");
+  const [isSavingCvTitles, setIsSavingCvTitles] = useState(false);
+
   // Load landing config on mount and sync with cloud
   useEffect(() => {
     const local = getLandingConfig();
@@ -108,6 +146,30 @@ function PengaturanPage() {
       setHeroConfig(synced);
     });
   }, []);
+
+  // Load CV data for editable titles & photo
+  useEffect(() => {
+    if (!user?.id) return;
+    supabase
+      .from("curriculum_vitae")
+      .select("*")
+      .eq("user_id", user.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (data) {
+          if (data.judul_tentang_saya) setJudulTentangSaya(data.judul_tentang_saya);
+          if (data.judul_pendidikan) setJudulPendidikan(data.judul_pendidikan);
+          if (data.judul_pengalaman) setJudulPengalaman(data.judul_pengalaman);
+          if (data.judul_keahlian) setJudulKeahlian(data.judul_keahlian);
+          if (data.judul_kompetensi) setJudulKompetensi(data.judul_kompetensi);
+          if (data.foto_url) {
+            setHeroConfig((prev) =>
+              prev.heroAvatarUrl ? prev : { ...prev, heroAvatarUrl: data.foto_url },
+            );
+          }
+        }
+      });
+  }, [user?.id]);
 
   const handleUpdateHeroField = <K extends keyof LandingPageConfig>(
     field: K,
@@ -191,6 +253,20 @@ function PengaturanPage() {
         } catch {
           // toleransi jika kolom profiles belum termigrasi
         }
+        if (heroConfig.heroAvatarUrl) {
+          try {
+            await supabase.from("curriculum_vitae").upsert(
+              {
+                user_id: user.id,
+                foto_url: heroConfig.heroAvatarUrl,
+                diperbarui_pada: new Date().toISOString(),
+              },
+              { onConflict: "user_id" },
+            );
+          } catch {
+            // toleransi
+          }
+        }
       }
 
       toast.success("Pengaturan Hero Landing Page berhasil disimpan!");
@@ -199,6 +275,121 @@ function PengaturanPage() {
       toast.error(msg);
     } finally {
       setIsSavingHero(false);
+    }
+  };
+
+  function fileToDataUrl(file: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
+  // 1 Pengaturan Foto Profil Terpadu untuk 3 Foto di Landing Page (Hero, CV & Hubungi Saya)
+  const applyUnifiedLandingAvatar = async (newUrl: string | null) => {
+    setHeroConfig((prev) => ({
+      ...prev,
+      heroAvatarUrl: newUrl,
+      contactAvatarUrl: newUrl,
+    }));
+    setAvatarUrl(newUrl);
+
+    await saveUnifiedLandingAvatar({
+      avatarUrl: newUrl,
+      position: heroConfig.heroAvatarPosition,
+      scale: heroConfig.heroAvatarScale,
+      userId: user?.id,
+    });
+  };
+
+  // Upload 1 foto profil terpadu untuk 3 foto di Landing Page (Hero, CV & Hubungi Saya)
+  // Menjaga kualitas HD / resolusi penuh (maks 10MB) dan tersimpan keras di storage & database
+  const handleLandingPhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const rawFile = e.target.files?.[0];
+    if (!rawFile) return;
+
+    if (rawFile.size > 10 * 1024 * 1024) {
+      toast.error("Ukuran foto maksimal 10MB.");
+      return;
+    }
+
+    setIsUploadingHeroPhoto(true);
+    setIsUploadingContactPhoto(true);
+    try {
+      // Optimasi file foto agar tetap HD kristal tajam, tanpa melampaui batasan storage/quota
+      const { file, dataUrl } = await optimizeAvatarImageForUpload(rawFile);
+      let newUrl = dataUrl;
+
+      if (user?.id) {
+        const cleanName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
+        // Format path sesuai RLS Supabase: {user.id}/...
+        const path = `${user.id}/avatar_landing_${Date.now()}_${cleanName}`;
+        try {
+          const { error: uploadErr } = await supabase.storage.from("avatars").upload(path, file, {
+            cacheControl: "3600",
+            upsert: true,
+          });
+          if (!uploadErr) {
+            const { data: urlData } = supabase.storage.from("avatars").getPublicUrl(path);
+            if (urlData?.publicUrl) {
+              newUrl = urlData.publicUrl;
+            }
+          } else {
+            console.warn("Storage upload notice, menggunakan data URL:", uploadErr);
+          }
+        } catch {
+          // fallback to dataUrl
+        }
+      }
+
+      await applyUnifiedLandingAvatar(newUrl);
+      toast.success(
+        "Foto profil landing page berhasil diperbarui untuk ketiga bagian (Hero, CV & Hubungi Saya)!",
+      );
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Gagal mengunggah foto.");
+    } finally {
+      setIsUploadingHeroPhoto(false);
+      setIsUploadingContactPhoto(false);
+      if (heroFileInputRef.current) heroFileInputRef.current.value = "";
+      if (contactFileInputRef.current) contactFileInputRef.current.value = "";
+    }
+  };
+
+  // Simpan Kustomisasi Judul Seksi CV
+  const handleSaveCvTitles = async () => {
+    setIsSavingCvTitles(true);
+    try {
+      if (user?.id) {
+        await supabase.from("curriculum_vitae").upsert(
+          {
+            user_id: user.id,
+            judul_tentang_saya: judulTentangSaya,
+            judul_pendidikan: judulPendidikan,
+            judul_pengalaman: judulPengalaman,
+            judul_keahlian: judulKeahlian,
+            judul_kompetensi: judulKompetensi,
+            diperbarui_pada: new Date().toISOString(),
+          },
+          { onConflict: "user_id" },
+        );
+      }
+
+      const updatedConfig: LandingPageConfig = {
+        ...heroConfig,
+        skillsHeader: judulKeahlian,
+        specializationHeader: judulKompetensi,
+      };
+      setHeroConfig(updatedConfig);
+      await saveLandingConfig(updatedConfig);
+
+      toast.success("Judul seksi CV berhasil disimpan dan diperbarui di seluruh aplikasi!");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Gagal menyimpan judul seksi.");
+    } finally {
+      setIsSavingCvTitles(false);
     }
   };
 
@@ -225,6 +416,8 @@ function PengaturanPage() {
       setPerusahaan(profile.company_name || "");
       setVendor(profile.vendor_name || "");
       setAvatarUrl(profile.avatar_url || null);
+      if (profile.avatar_position) setAvatarPosition(profile.avatar_position);
+      if (profile.avatar_scale) setAvatarScale(Number(profile.avatar_scale));
     } else if (user?.email) {
       const defaultName = user.email
         .split("@")[0]!
@@ -275,6 +468,7 @@ function PengaturanPage() {
       toast.loading("Menghapus foto profil...", { id: "delete-avatar" });
       await deleteAvatar(avatarUrl);
       setAvatarUrl(null);
+      await applyUnifiedLandingAvatar(null);
       toast.success("Foto profil berhasil dihapus.", { id: "delete-avatar" });
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Gagal menghapus foto profil.";
@@ -297,8 +491,16 @@ function PengaturanPage() {
         company_name: perusahaan.trim() || null,
         vendor_name: vendor.trim() || null,
         avatar_url: avatarUrl,
+        avatar_position: avatarPosition,
+        avatar_scale: avatarScale,
       });
-      toast.success("Profil berhasil diperbarui");
+      await saveUnifiedLandingAvatar({
+        avatarUrl: avatarUrl,
+        position: avatarPosition,
+        scale: avatarScale,
+        userId: user?.id,
+      });
+      toast.success("Profil berhasil diperbarui dan disinkronkan ke Landing Page!");
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Gagal memperbarui profil.";
       toast.error(message);
@@ -373,8 +575,10 @@ function PengaturanPage() {
                     <UserAvatar
                       avatarUrl={avatarUrl}
                       nama={namaLengkap}
-                      className="size-28 sm:size-32 shadow-xs"
+                      className="size-32 sm:size-36 shadow-xs"
                       status="online"
+                      position={avatarPosition}
+                      scale={avatarScale}
                     />
 
                     {/* Tombol Kamera untuk upload/ganti foto */}
@@ -403,19 +607,34 @@ function PengaturanPage() {
                   </div>
 
                   <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-2.5 text-center sm:text-left">
-                    PNG, JPG maksimal 2MB
+                    PNG, JPG maksimal 10MB
                   </p>
 
-                  {avatarUrl && (
-                    <button
-                      type="button"
-                      onClick={handleHapusFoto}
-                      disabled={isDeletingAvatar}
-                      className="text-xs font-medium text-rose-500 hover:text-rose-600 hover:underline mt-1.5 cursor-pointer disabled:opacity-50"
-                    >
-                      {isDeletingAvatar ? "Menghapus..." : "Hapus foto"}
-                    </button>
-                  )}
+                  <div className="flex items-center gap-2 flex-wrap mt-2">
+                    {avatarUrl && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setShowProfilePrecision(!showProfilePrecision)}
+                        className="rounded-xl text-xs h-7 px-2.5 gap-1.5 border-indigo-200 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 cursor-pointer shadow-2xs"
+                      >
+                        <SlidersHorizontal className="size-3" />
+                        <span>{showProfilePrecision ? "Tutup Presisi" : "Presisikan Foto"}</span>
+                      </Button>
+                    )}
+
+                    {avatarUrl && (
+                      <button
+                        type="button"
+                        onClick={handleHapusFoto}
+                        disabled={isDeletingAvatar}
+                        className="text-xs font-medium text-rose-500 hover:text-rose-600 hover:underline cursor-pointer disabled:opacity-50"
+                      >
+                        {isDeletingAvatar ? "Menghapus..." : "Hapus foto"}
+                      </button>
+                    )}
+                  </div>
                 </div>
 
                 {/* Kolom Kanan: Form Field */}
@@ -490,6 +709,50 @@ function PengaturanPage() {
                   </div>
                 </div>
               </div>
+
+              {/* Panel Presisi Khusus Foto Profil Akun */}
+              {showProfilePrecision && avatarUrl && (
+                <div className="mt-6 pt-5 border-t border-slate-100 dark:border-slate-800">
+                  <PhotoPrecisionControl
+                    imageUrl={avatarUrl}
+                    position={avatarPosition}
+                    scale={avatarScale}
+                    onChange={(newPos, newScale) => {
+                      setAvatarPosition(newPos);
+                      setAvatarScale(newScale);
+                      if (typeof window !== "undefined") {
+                        localStorage.setItem("workhub_avatar_position", newPos);
+                        localStorage.setItem("workhub_avatar_scale", String(newScale));
+                      }
+                    }}
+                    onSyncAll={async (newPos, newScale) => {
+                      setAvatarPosition(newPos);
+                      setAvatarScale(newScale);
+                      handleUpdateHeroField("heroAvatarPosition", newPos);
+                      handleUpdateHeroField("heroAvatarScale", newScale);
+                      if (user?.id) {
+                        await supabase.from("curriculum_vitae").upsert({
+                          user_id: user.id,
+                          foto_position: newPos,
+                          foto_scale: newScale,
+                          diperbarui_pada: new Date().toISOString(),
+                        });
+                      }
+                      await updateProfile({
+                        full_name: namaLengkap.trim() || "Pengguna",
+                        avatar_url: avatarUrl,
+                        avatar_position: newPos,
+                        avatar_scale: newScale,
+                      });
+                      toast.success(
+                        "Presisi foto berhasil diterapkan ke Foto Profil, CV, dan Hero!",
+                      );
+                    }}
+                    title="Presisikan Foto Profil Akun"
+                    subtitle="Atur posisi wajah dan zoom avatar agar pas di header, dasbor, dan sidebar."
+                  />
+                </div>
+              )}
             </form>
           </div>
 
@@ -560,18 +823,6 @@ function PengaturanPage() {
         </div>
       </div>
 
-      <LandingPhotoSettings
-        user={user}
-        config={heroConfig}
-        onConfigChange={setHeroConfig}
-        fallbackUrls={{
-          heroAvatarUrl: avatarUrl || profile?.avatar_url || satriaRedAvatar,
-          cvAvatarUrl: satriaRedAvatar,
-          contactAvatarUrl:
-            heroConfig.heroAvatarUrl || avatarUrl || profile?.avatar_url || satriaRedAvatar,
-        }}
-      />
-
       {/* Hero & Portofolio Halaman Depan (Sesuai Lampiran 2) */}
       <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-7 border border-slate-100 dark:border-slate-800/80 shadow-xs">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-slate-100 dark:border-slate-800/60">
@@ -618,6 +869,214 @@ function PengaturanPage() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start pt-6">
           {/* Kolom Kiri: Form Pengaturan Hero */}
           <div className="lg:col-span-7 space-y-5">
+            {/* 1 Pengaturan Foto Profil Terpadu untuk 3 Foto di Landing Page (Hero, CV & Hubungi Saya) */}
+            <div className="p-4 rounded-2xl border border-blue-200/80 dark:border-blue-900/50 bg-blue-50/30 dark:bg-blue-950/20 space-y-3">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <Label className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                      <ImageIcon className="size-4 text-blue-600 dark:text-blue-400" />
+                      <span>
+                        Foto Profil Landing Page (1 Pengaturan untuk Hero, CV & Hubungi Saya)
+                      </span>
+                    </Label>
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300">
+                      Tersinkronisasi 3 Bagian
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
+                    1 Pengaturan Tunggal: Mengubah foto, preset, URL, posisi, atau zoom di sini akan
+                    otomatis memperbarui sekaligus ketiga foto profil di halaman depan (Seksi Hero,
+                    Kartu CV Portofolio, dan Seksi Kontak Hubungi Saya). Tersimpan permanen dan
+                    tidak akan kembali ke semula setelah reload.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 pt-1">
+                {/* Avatar Preview */}
+                <div className="relative shrink-0">
+                  <div className="size-20 rounded-2xl overflow-hidden border-2 border-white dark:border-slate-800 shadow-md ring-1 ring-slate-200 dark:ring-slate-700 bg-slate-100 dark:bg-slate-800">
+                    <img
+                      src={
+                        getHighResolutionAvatarUrl(heroConfig.heroAvatarUrl) ||
+                        getHighResolutionAvatarUrl(avatarUrl) ||
+                        satriaRedAvatar
+                      }
+                      srcSet={getAvatarSrcSet(
+                        getHighResolutionAvatarUrl(heroConfig.heroAvatarUrl) ||
+                          getHighResolutionAvatarUrl(avatarUrl) ||
+                          satriaRedAvatar,
+                      )}
+                      alt={heroConfig.heroName || "Foto"}
+                      className="size-full select-none transition-transform"
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "cover",
+                        objectPosition: heroConfig.heroAvatarPosition || "50% 50%",
+                        transform:
+                          heroConfig.heroAvatarScale && heroConfig.heroAvatarScale !== 1
+                            ? `scale(${heroConfig.heroAvatarScale})`
+                            : undefined,
+                        transformOrigin: heroConfig.heroAvatarPosition || "50% 50%",
+                        imageRendering: "auto",
+                        WebkitBackfaceVisibility: "hidden",
+                        backfaceVisibility: "hidden",
+                      }}
+                      loading="eager"
+                      decoding="async"
+                    />
+                  </div>
+                  {isUploadingHeroPhoto && (
+                    <div className="absolute inset-0 bg-black/50 rounded-2xl flex items-center justify-center">
+                      <Loader2 className="size-5 text-white animate-spin" />
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex-1 space-y-2 w-full">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <input
+                      type="file"
+                      ref={heroFileInputRef}
+                      onChange={handleLandingPhotoUpload}
+                      accept="image/*"
+                      className="hidden"
+                    />
+                    <Button
+                      type="button"
+                      size="sm"
+                      onClick={() => heroFileInputRef.current?.click()}
+                      disabled={isUploadingHeroPhoto}
+                      className="rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold h-8 px-3 gap-1.5 cursor-pointer shadow-xs"
+                    >
+                      <Camera className="size-3.5" />
+                      <span>
+                        {isUploadingHeroPhoto ? "Mengunggah HD..." : "Upload Foto Baru (10MB)"}
+                      </span>
+                    </Button>
+
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        applyUnifiedLandingAvatar(satriaRedAvatar);
+                        toast.success(
+                          "Preset resmi Satria (Latar Merah) diterapkan untuk 3 bagian landing page!",
+                        );
+                      }}
+                      className="rounded-xl border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-xs h-8 px-3 gap-1 cursor-pointer"
+                    >
+                      <Sparkles className="size-3.5 text-amber-500" />
+                      <span>Preset Latar Merah</span>
+                    </Button>
+
+                    {avatarUrl && avatarUrl !== heroConfig.heroAvatarUrl && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          applyUnifiedLandingAvatar(avatarUrl);
+                          toast.success("Foto profil akun diterapkan ke 3 bagian landing page!");
+                        }}
+                        className="rounded-xl border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-xs h-8 px-3 cursor-pointer"
+                      >
+                        <span>Gunakan Foto Profil Akun</span>
+                      </Button>
+                    )}
+
+                    {heroConfig.heroAvatarUrl && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          applyUnifiedLandingAvatar(null);
+                          toast.info("Foto profil landing page direset ke default.");
+                        }}
+                        className="rounded-xl text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 text-xs h-8 px-2.5 cursor-pointer"
+                      >
+                        <Trash2 className="size-3.5 mr-1" />
+                        <span>Reset Foto</span>
+                      </Button>
+                    )}
+                  </div>
+
+                  {/* Input URL Foto Kustom */}
+                  <div className="flex items-center gap-2 pt-1">
+                    <Input
+                      value={customPhotoUrlInput}
+                      onChange={(e) => setCustomPhotoUrlInput(e.target.value)}
+                      placeholder="Atau tempel tautan URL foto resolusi tinggi (https://...)..."
+                      className="rounded-xl text-xs h-8 bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        if (!customPhotoUrlInput.trim()) {
+                          toast.error("Masukkan tautan URL foto terlebih dahulu.");
+                          return;
+                        }
+                        applyUnifiedLandingAvatar(customPhotoUrlInput.trim());
+                        toast.success(
+                          "Tautan foto kustom berhasil diterapkan ke 3 bagian landing page!",
+                        );
+                        setCustomPhotoUrlInput("");
+                      }}
+                      className="rounded-xl text-xs h-8 px-3 cursor-pointer shrink-0"
+                    >
+                      Terapkan URL
+                    </Button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Panel Presisi & Zoom Foto Terpadu untuk 3 Foto Landing Page */}
+              <PhotoPrecisionControl
+                imageUrl={heroConfig.heroAvatarUrl || avatarUrl || satriaRedAvatar}
+                position={heroConfig.heroAvatarPosition || "50% 50%"}
+                scale={heroConfig.heroAvatarScale || 1}
+                onChange={async (newPos, newScale) => {
+                  handleUpdateHeroField("heroAvatarPosition", newPos);
+                  handleUpdateHeroField("heroAvatarScale", newScale);
+                  handleUpdateHeroField("contactAvatarPosition", newPos);
+                  handleUpdateHeroField("contactAvatarScale", newScale);
+                  setAvatarPosition(newPos);
+                  setAvatarScale(newScale);
+                  await saveUnifiedLandingAvatar({
+                    avatarUrl: heroConfig.heroAvatarUrl || avatarUrl,
+                    position: newPos,
+                    scale: newScale,
+                    userId: user?.id,
+                  });
+                }}
+                onSyncAll={async (newPos, newScale) => {
+                  handleUpdateHeroField("heroAvatarPosition", newPos);
+                  handleUpdateHeroField("heroAvatarScale", newScale);
+                  handleUpdateHeroField("contactAvatarPosition", newPos);
+                  handleUpdateHeroField("contactAvatarScale", newScale);
+                  setAvatarPosition(newPos);
+                  setAvatarScale(newScale);
+                  await saveUnifiedLandingAvatar({
+                    avatarUrl: heroConfig.heroAvatarUrl || avatarUrl,
+                    position: newPos,
+                    scale: newScale,
+                    userId: user?.id,
+                  });
+                  toast.success(
+                    "Presisi foto berhasil diterapkan serentak ke seluruh foto landing page!",
+                  );
+                }}
+                title="Presisikan Posisi & Zoom Foto (3 Foto Sekaligus)"
+                subtitle="Sesuaikan posisi horizontal, vertikal, dan zoom foto yang tampil seragam di Hero, CV Portofolio, dan Seksi Kontak."
+              />
+            </div>
+
             {/* Judul Hero Display */}
             <div className="space-y-1.5">
               <Label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
@@ -819,17 +1278,40 @@ function PengaturanPage() {
 
                 <div className="flex items-center gap-3">
                   <div className="relative shrink-0">
-                    <AdjustedAvatar
-                      src={
-                        heroConfig.heroAvatarUrl ||
-                        avatarUrl ||
-                        profile?.avatar_url ||
-                        satriaRedAvatar
-                      }
-                      alt={heroConfig.heroName}
-                      adjust={heroConfig.heroAvatarAdjust}
-                      className="size-14 rounded-full shadow-sm ring-1 ring-slate-200 dark:ring-slate-700"
-                    />
+                    <div className="size-14 rounded-full overflow-hidden shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 bg-slate-100 dark:bg-slate-800">
+                      <img
+                        src={
+                          getHighResolutionAvatarUrl(heroConfig.heroAvatarUrl) ||
+                          getHighResolutionAvatarUrl(avatarUrl) ||
+                          getHighResolutionAvatarUrl(profile?.avatar_url) ||
+                          satriaRedAvatar
+                        }
+                        srcSet={getAvatarSrcSet(
+                          getHighResolutionAvatarUrl(heroConfig.heroAvatarUrl) ||
+                            getHighResolutionAvatarUrl(avatarUrl) ||
+                            getHighResolutionAvatarUrl(profile?.avatar_url) ||
+                            satriaRedAvatar,
+                        )}
+                        alt={heroConfig.heroName}
+                        className="size-full select-none transition-transform"
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          objectFit: "cover",
+                          objectPosition: heroConfig.heroAvatarPosition || "50% 50%",
+                          transform:
+                            heroConfig.heroAvatarScale && heroConfig.heroAvatarScale !== 1
+                              ? `scale(${heroConfig.heroAvatarScale})`
+                              : undefined,
+                          transformOrigin: heroConfig.heroAvatarPosition || "50% 50%",
+                          imageRendering: "auto",
+                          WebkitBackfaceVisibility: "hidden",
+                          backfaceVisibility: "hidden",
+                        }}
+                        loading="eager"
+                        decoding="async"
+                      />
+                    </div>
                   </div>
 
                   <div className="min-w-0">
@@ -893,6 +1375,121 @@ function PengaturanPage() {
         </div>
       </div>
 
+      {/* Kustomisasi Judul Seksi CV & Portofolio */}
+      <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-7 border border-slate-100 dark:border-slate-800/80 shadow-xs">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-slate-100 dark:border-slate-800/60">
+          <div>
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-100 dark:border-indigo-900 text-indigo-600 dark:text-indigo-400 text-xs font-semibold mb-1">
+              <Sparkles className="size-3.5" />
+              <span>Kustomisasi Judul Seksi CV</span>
+            </div>
+            <h2 className="text-base sm:text-lg font-bold text-slate-800 dark:text-slate-100 tracking-tight">
+              Judul Seksi CV & Portofolio
+            </h2>
+            <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
+              Ubah teks judul untuk Tentang Saya, Riwayat Pendidikan, Pengalaman Kerja, Keahlian
+              Utama, dan Spesialisasi Kompetensi.
+            </p>
+          </div>
+
+          <Button
+            type="button"
+            onClick={handleSaveCvTitles}
+            disabled={isSavingCvTitles}
+            className="rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold h-9 px-4 gap-1.5 cursor-pointer shadow-xs self-start sm:self-auto"
+          >
+            {isSavingCvTitles ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <Save className="size-4" />
+            )}
+            <span>Simpan Judul Seksi</span>
+          </Button>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pt-6">
+          <div className="space-y-1.5">
+            <Label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+              Judul Tentang Saya
+            </Label>
+            <Input
+              value={judulTentangSaya}
+              onChange={(e) => setJudulTentangSaya(e.target.value)}
+              placeholder="Tentang Saya"
+              className="rounded-xl border-slate-200 dark:border-slate-800 text-sm"
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <Label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+              Judul Riwayat Pendidikan (1)
+            </Label>
+            <Input
+              value={judulPendidikan}
+              onChange={(e) => setJudulPendidikan(e.target.value)}
+              placeholder="1. Riwayat Pendidikan"
+              className="rounded-xl border-slate-200 dark:border-slate-800 text-sm"
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <Label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+              Judul Pengalaman Kerja (2)
+            </Label>
+            <Input
+              value={judulPengalaman}
+              onChange={(e) => setJudulPengalaman(e.target.value)}
+              placeholder="2. Pengalaman Kerja"
+              className="rounded-xl border-slate-200 dark:border-slate-800 text-sm"
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <Label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+              Judul Keahlian Utama (3)
+            </Label>
+            <Input
+              value={judulKeahlian}
+              onChange={(e) => setJudulKeahlian(e.target.value)}
+              placeholder="3. Keahlian Utama"
+              className="rounded-xl border-slate-200 dark:border-slate-800 text-sm"
+            />
+          </div>
+
+          <div className="space-y-1.5 sm:col-span-2">
+            <Label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+              Judul Spesialisasi Kompetensi (4)
+            </Label>
+            <Input
+              value={judulKompetensi}
+              onChange={(e) => setJudulKompetensi(e.target.value)}
+              placeholder="4. Spesialisasi Kompetensi"
+              className="rounded-xl border-slate-200 dark:border-slate-800 text-sm"
+            />
+          </div>
+        </div>
+
+        <div className="mt-5 pt-4 border-t border-slate-100 dark:border-slate-800/60 flex items-center justify-between flex-wrap gap-3 text-xs text-slate-500">
+          <span>
+            Urutan seksi resmi: 1. Pendidikan → 2. Pengalaman Kerja → 3. Keahlian Utama → 4.
+            Spesialisasi Kompetensi.
+          </span>
+          <Button
+            type="button"
+            onClick={handleSaveCvTitles}
+            disabled={isSavingCvTitles}
+            className="rounded-xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-xs font-semibold h-8.5 px-4 gap-1.5 cursor-pointer"
+          >
+            {isSavingCvTitles ? (
+              <Loader2 className="size-3.5 animate-spin" />
+            ) : (
+              <Check className="size-3.5" />
+            )}
+            <span>Terapkan Perubahan Judul</span>
+          </Button>
+        </div>
+      </div>
+
       {/* Seksi Kontak Mari Terhubung (Hubungi Saya) */}
       <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-7 border border-slate-100 dark:border-slate-800/80 shadow-xs">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-slate-100 dark:border-slate-800/60">
@@ -925,8 +1522,236 @@ function PengaturanPage() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start pt-6">
-          {/* Kolom Kiri: Form Input Kontak */}
+          {/* Kolom Kiri: Form Input Kontak & Foto Profil */}
           <div className="lg:col-span-7 space-y-5">
+            {/* Foto Profil Seksi Kontak ("Hubungi Saya") - Tersinkronisasi 1 Pengaturan dengan Hero & CV */}
+            <div className="p-4 rounded-2xl border border-blue-200/80 dark:border-blue-900/50 bg-blue-50/30 dark:bg-blue-950/20 space-y-3">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <Label className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                      <ImageIcon className="size-4 text-blue-600 dark:text-blue-400" />
+                      <span>Foto Profil Seksi Kontak ("Hubungi Saya")</span>
+                    </Label>
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300">
+                      Tersinkronisasi 1 Pengaturan
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
+                    Foto di seksi kontak ini selalu otomatis sama dan serasi dengan foto Hero dan
+                    kartu CV (1 pengaturan terpadu). Jika diubah di sini atau di seksi atas, ketiga
+                    foto langsung ikut berubah bersamaan.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 pt-1">
+                {/* Avatar Circle Preview */}
+                <div className="relative shrink-0">
+                  <div
+                    className="size-20 sm:size-24 rounded-full overflow-hidden border-2 border-white dark:border-slate-800 shadow-md ring-1 ring-slate-200 dark:ring-slate-700 bg-slate-100 dark:bg-slate-800"
+                    style={{
+                      borderRadius: "50%",
+                      overflow: "hidden",
+                      isolation: "isolate",
+                    }}
+                  >
+                    <img
+                      src={
+                        getHighResolutionAvatarUrl(heroConfig.heroAvatarUrl) ||
+                        getHighResolutionAvatarUrl(heroConfig.contactAvatarUrl) ||
+                        getHighResolutionAvatarUrl(avatarUrl) ||
+                        satriaRedAvatar
+                      }
+                      srcSet={getAvatarSrcSet(
+                        getHighResolutionAvatarUrl(heroConfig.heroAvatarUrl) ||
+                          getHighResolutionAvatarUrl(heroConfig.contactAvatarUrl) ||
+                          getHighResolutionAvatarUrl(avatarUrl) ||
+                          satriaRedAvatar,
+                      )}
+                      alt="Foto Kontak"
+                      className="size-full select-none transition-transform"
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "cover",
+                        objectPosition:
+                          heroConfig.heroAvatarPosition ||
+                          heroConfig.contactAvatarPosition ||
+                          "50% 50%",
+                        transform:
+                          heroConfig.heroAvatarScale && heroConfig.heroAvatarScale !== 1
+                            ? `scale(${heroConfig.heroAvatarScale})`
+                            : undefined,
+                        transformOrigin:
+                          heroConfig.heroAvatarPosition ||
+                          heroConfig.contactAvatarPosition ||
+                          "50% 50%",
+                        imageRendering: "auto",
+                        WebkitBackfaceVisibility: "hidden",
+                        backfaceVisibility: "hidden",
+                      }}
+                      loading="eager"
+                      decoding="async"
+                      draggable={false}
+                    />
+                  </div>
+                  {isUploadingContactPhoto && (
+                    <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center">
+                      <Loader2 className="size-5 text-white animate-spin" />
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex-1 space-y-2 w-full">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <input
+                      type="file"
+                      ref={contactFileInputRef}
+                      onChange={handleLandingPhotoUpload}
+                      accept="image/*"
+                      className="hidden"
+                    />
+                    <Button
+                      type="button"
+                      size="sm"
+                      onClick={() => contactFileInputRef.current?.click()}
+                      disabled={isUploadingContactPhoto}
+                      className="rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold h-8 px-3 gap-1.5 cursor-pointer shadow-xs"
+                    >
+                      <Camera className="size-3.5" />
+                      <span>
+                        {isUploadingContactPhoto
+                          ? "Mengunggah HD..."
+                          : "Ganti Foto (3 Bagian Sekaligus)"}
+                      </span>
+                    </Button>
+
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        applyUnifiedLandingAvatar(satriaRedAvatar);
+                        toast.success(
+                          "Preset resmi Satria (Latar Merah) diterapkan untuk 3 bagian landing page!",
+                        );
+                      }}
+                      className="rounded-xl border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-xs h-8 px-3 gap-1 cursor-pointer"
+                    >
+                      <Sparkles className="size-3.5 text-amber-500" />
+                      <span>Preset Latar Merah</span>
+                    </Button>
+
+                    {avatarUrl && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          applyUnifiedLandingAvatar(avatarUrl);
+                          toast.success("Foto profil akun diterapkan untuk 3 bagian landing page!");
+                        }}
+                        className="rounded-xl border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-xs h-8 px-3 cursor-pointer"
+                      >
+                        <span>Gunakan Foto Profil Akun</span>
+                      </Button>
+                    )}
+
+                    {(heroConfig.heroAvatarUrl || heroConfig.contactAvatarUrl) && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          applyUnifiedLandingAvatar(null);
+                          toast.info("Foto profil landing page direset ke default.");
+                        }}
+                        className="rounded-xl text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 text-xs h-8 px-2.5 cursor-pointer"
+                      >
+                        <Trash2 className="size-3.5 mr-1" />
+                        <span>Reset Foto</span>
+                      </Button>
+                    )}
+                  </div>
+
+                  {/* Input URL Foto Kustom Kontak */}
+                  <div className="flex items-center gap-2 pt-1">
+                    <Input
+                      value={customContactPhotoUrlInput}
+                      onChange={(e) => setCustomContactPhotoUrlInput(e.target.value)}
+                      placeholder="Atau tempel tautan URL foto beresolusi tinggi (https://...)..."
+                      className="rounded-xl text-xs h-8 bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        if (!customContactPhotoUrlInput.trim()) {
+                          toast.error("Masukkan tautan URL foto terlebih dahulu.");
+                          return;
+                        }
+                        applyUnifiedLandingAvatar(customContactPhotoUrlInput.trim());
+                        toast.success(
+                          "Tautan foto kustom berhasil diterapkan untuk 3 bagian landing page!",
+                        );
+                        setCustomContactPhotoUrlInput("");
+                      }}
+                      className="rounded-xl text-xs h-8 px-3 cursor-pointer shrink-0"
+                    >
+                      Terapkan URL
+                    </Button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Panel Presisi & Zoom Foto Terpadu */}
+              <PhotoPrecisionControl
+                imageUrl={
+                  getHighResolutionAvatarUrl(heroConfig.heroAvatarUrl) ||
+                  getHighResolutionAvatarUrl(heroConfig.contactAvatarUrl) ||
+                  getHighResolutionAvatarUrl(avatarUrl) ||
+                  satriaRedAvatar
+                }
+                position={
+                  heroConfig.heroAvatarPosition || heroConfig.contactAvatarPosition || "50% 50%"
+                }
+                scale={heroConfig.heroAvatarScale ?? heroConfig.contactAvatarScale ?? 1}
+                onChange={async (newPos, newScale) => {
+                  handleUpdateHeroField("contactAvatarPosition", newPos);
+                  handleUpdateHeroField("contactAvatarScale", newScale);
+                  handleUpdateHeroField("heroAvatarPosition", newPos);
+                  handleUpdateHeroField("heroAvatarScale", newScale);
+                  setAvatarPosition(newPos);
+                  setAvatarScale(newScale);
+                  await saveUnifiedLandingAvatar({
+                    avatarUrl: heroConfig.heroAvatarUrl || heroConfig.contactAvatarUrl || avatarUrl,
+                    position: newPos,
+                    scale: newScale,
+                    userId: user?.id,
+                  });
+                }}
+                onSyncAll={async (newPos, newScale) => {
+                  handleUpdateHeroField("contactAvatarPosition", newPos);
+                  handleUpdateHeroField("contactAvatarScale", newScale);
+                  handleUpdateHeroField("heroAvatarPosition", newPos);
+                  handleUpdateHeroField("heroAvatarScale", newScale);
+                  setAvatarPosition(newPos);
+                  setAvatarScale(newScale);
+                  await saveUnifiedLandingAvatar({
+                    avatarUrl: heroConfig.heroAvatarUrl || heroConfig.contactAvatarUrl || avatarUrl,
+                    position: newPos,
+                    scale: newScale,
+                    userId: user?.id,
+                  });
+                  toast.success("Presisi foto berhasil disinkronkan ke 3 bagian landing page!");
+                }}
+                title="Presisikan Posisi & Zoom Foto (3 Foto Sekaligus)"
+                subtitle="Sesuaikan posisi horizontal, vertikal, dan zoom foto yang tampil pada seksi Hero, CV, dan Mari Terhubung / Hubungi Saya."
+              />
+            </div>
+
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <Label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
@@ -1046,21 +1871,53 @@ function PengaturanPage() {
 
               <div className="bg-white dark:bg-slate-900 rounded-2xl p-4 border border-slate-200/80 dark:border-slate-800 space-y-3.5">
                 <div className="flex items-center gap-3 pb-3 border-b border-slate-100 dark:border-slate-800">
-                  <AdjustedAvatar
-                    src={
-                      heroConfig.contactAvatarUrl ||
-                      heroConfig.heroAvatarUrl ||
-                      avatarUrl ||
-                      satriaRedAvatar
-                    }
-                    alt={heroConfig.heroName}
-                    adjust={
-                      heroConfig.contactAvatarUrl
-                        ? heroConfig.contactAvatarAdjust
-                        : (heroConfig.contactAvatarAdjust ?? heroConfig.heroAvatarAdjust)
-                    }
-                    className="size-12 rounded-full shadow-sm ring-1 ring-slate-200 dark:ring-slate-700"
-                  />
+                  <div
+                    className="size-12 rounded-full overflow-hidden shadow-sm ring-1 ring-slate-200 dark:ring-slate-700 shrink-0 bg-slate-100 dark:bg-slate-800"
+                    style={{
+                      borderRadius: "50%",
+                      overflow: "hidden",
+                      isolation: "isolate",
+                    }}
+                  >
+                    <img
+                      src={
+                        getHighResolutionAvatarUrl(heroConfig.contactAvatarUrl) ||
+                        getHighResolutionAvatarUrl(heroConfig.heroAvatarUrl) ||
+                        getHighResolutionAvatarUrl(avatarUrl) ||
+                        satriaRedAvatar
+                      }
+                      srcSet={getAvatarSrcSet(
+                        getHighResolutionAvatarUrl(heroConfig.contactAvatarUrl) ||
+                          getHighResolutionAvatarUrl(heroConfig.heroAvatarUrl) ||
+                          getHighResolutionAvatarUrl(avatarUrl) ||
+                          satriaRedAvatar,
+                      )}
+                      alt={heroConfig.heroName}
+                      className="size-full select-none transition-transform"
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "cover",
+                        objectPosition:
+                          heroConfig.contactAvatarPosition ||
+                          heroConfig.heroAvatarPosition ||
+                          "50% 50%",
+                        transform:
+                          heroConfig.contactAvatarScale && heroConfig.contactAvatarScale !== 1
+                            ? `scale(${heroConfig.contactAvatarScale})`
+                            : undefined,
+                        transformOrigin:
+                          heroConfig.contactAvatarPosition ||
+                          heroConfig.heroAvatarPosition ||
+                          "50% 50%",
+                        imageRendering: "auto",
+                        WebkitBackfaceVisibility: "hidden",
+                        backfaceVisibility: "hidden",
+                      }}
+                      loading="eager"
+                      decoding="async"
+                    />
+                  </div>
                   <div className="min-w-0">
                     <p className="text-xs font-bold text-slate-900 dark:text-white uppercase truncate">
                       {heroConfig.heroName || "SATRIA NUR ARDIANSYAH"}

@@ -200,8 +200,10 @@ export function AppShell({ children }: { children: ReactNode }) {
               <UserAvatar
                 avatarUrl={profile?.avatar_url ?? null}
                 nama={displayName}
-                className="size-20 shadow-xs"
+                className="size-28 sm:size-32 shadow-xs"
                 status="online"
+                position={profile?.avatar_position}
+                scale={profile?.avatar_scale}
               />
               <div className="mt-3 flex items-center gap-1.5 justify-center">
                 <p className="text-base font-bold tracking-tight text-slate-800 dark:text-slate-100">

@@ -815,18 +815,33 @@ function TataLetakLandingPage() {
               />
             </div>
 
-            <div className="mt-4">
-              <Label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                Judul Bagian
-              </Label>
-              <Input
-                value={config.yearWorkTitle}
-                onChange={(event) =>
-                  setConfig((prev) => ({ ...prev, yearWorkTitle: event.target.value }))
-                }
-                placeholder="Pekerjaan Tahun Ini"
-                className="mt-1 rounded-xl"
-              />
+            <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <Label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                  Label Lencana Atas
+                </Label>
+                <Input
+                  value={config.yearWorkBadge || ""}
+                  onChange={(event) =>
+                    setConfig((prev) => ({ ...prev, yearWorkBadge: event.target.value }))
+                  }
+                  placeholder="PORTOFOLIO 2026"
+                  className="mt-1 rounded-xl text-xs"
+                />
+              </div>
+              <div>
+                <Label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                  Judul Bagian
+                </Label>
+                <Input
+                  value={config.yearWorkTitle}
+                  onChange={(event) =>
+                    setConfig((prev) => ({ ...prev, yearWorkTitle: event.target.value }))
+                  }
+                  placeholder="Pekerjaan Tahun Ini"
+                  className="mt-1 rounded-xl text-xs"
+                />
+              </div>
             </div>
 
             <div className="mt-5 space-y-3">

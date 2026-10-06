@@ -1,5 +1,7 @@
 import { supabase } from "./supabase";
 import type { User } from "@supabase/supabase-js";
+import { getHighResolutionAvatarUrl } from "./avatarUtils";
+import satriaRedAvatar from "@/assets/images/satria_avatar_red_1790582692896.jpg";
 
 export interface UserProfile {
   id: string;
@@ -9,6 +11,8 @@ export interface UserProfile {
   company_name: string | null;
   vendor_name: string | null;
   avatar_url: string | null;
+  avatar_position?: string | null;
+  avatar_scale?: number | null;
   created_at?: string | undefined;
   updated_at?: string | undefined;
 }
@@ -19,6 +23,8 @@ export type UpdateProfilePayload = {
   company_name?: string | null;
   vendor_name?: string | null;
   avatar_url?: string | null;
+  avatar_position?: string | null;
+  avatar_scale?: number | null;
 };
 
 /**
@@ -75,7 +81,52 @@ export async function fetchUserProfile(user: User): Promise<UserProfile> {
   const vendorName =
     (dbRow?.vendor_name !== undefined ? dbRow.vendor_name : meta.vendor_name) ?? null;
 
-  const avatarUrl = (dbRow?.avatar_url !== undefined ? dbRow.avatar_url : meta.avatar_url) ?? null;
+  let avatarUrl = (dbRow?.avatar_url !== undefined ? dbRow.avatar_url : meta.avatar_url) ?? null;
+  let avatarPosition =
+    (dbRow?.avatar_position !== undefined ? dbRow.avatar_position : meta.avatar_position) ??
+    (typeof window !== "undefined" ? localStorage.getItem("workhub_avatar_position") : null) ??
+    null;
+  let avatarScale =
+    (dbRow?.avatar_scale !== undefined
+      ? Number(dbRow.avatar_scale)
+      : meta.avatar_scale !== undefined
+        ? Number(meta.avatar_scale)
+        : null) ??
+    (typeof window !== "undefined"
+      ? parseFloat(localStorage.getItem("workhub_avatar_scale") || "1")
+      : null);
+
+  // Jika avatar_url belum diset di profiles / user_metadata, ambil foto_url resolusi tinggi dari curriculum_vitae
+  if (!avatarUrl && user?.id) {
+    try {
+      const { data: cvData } = await supabase
+        .from("curriculum_vitae")
+        .select("foto_url, foto_position")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      if (cvData?.foto_url) {
+        avatarUrl = cvData.foto_url;
+        if (cvData.foto_position && !avatarPosition) {
+          avatarPosition = cvData.foto_position;
+        }
+      }
+    } catch {
+      // ignore
+    }
+  }
+
+  // Jika masih kosong, gunakan foto resmi HD Satria (1024x1024)
+  if (!avatarUrl) {
+    avatarUrl = satriaRedAvatar;
+  }
+  avatarUrl = getHighResolutionAvatarUrl(avatarUrl) || avatarUrl;
+
+  if (!avatarPosition) {
+    avatarPosition = "50% 50%";
+  }
+  if (!avatarScale) {
+    avatarScale = 1;
+  }
 
   return {
     id: user.id,
@@ -85,6 +136,8 @@ export async function fetchUserProfile(user: User): Promise<UserProfile> {
     company_name: companyName,
     vendor_name: vendorName,
     avatar_url: avatarUrl,
+    avatar_position: avatarPosition,
+    avatar_scale: avatarScale,
     created_at: dbRow?.created_at,
     updated_at: dbRow?.updated_at,
   };
@@ -107,6 +160,17 @@ export async function updateUserProfile(
   const cleanCompanyName = payload.company_name?.trim() || null;
   const cleanVendorName = payload.vendor_name?.trim() || null;
   const cleanAvatarUrl = payload.avatar_url ?? null;
+  const cleanAvatarPosition = payload.avatar_position || "50% 50%";
+  const cleanAvatarScale =
+    payload.avatar_scale !== undefined && payload.avatar_scale !== null
+      ? Number(payload.avatar_scale)
+      : 1;
+
+  // Persist locally for instant responsiveness
+  if (typeof window !== "undefined") {
+    localStorage.setItem("workhub_avatar_position", cleanAvatarPosition);
+    localStorage.setItem("workhub_avatar_scale", String(cleanAvatarScale));
+  }
 
   const existingMeta = (user.user_metadata || {}) as Record<string, unknown>;
   const authMetadata = {
@@ -116,6 +180,8 @@ export async function updateUserProfile(
     company_name: cleanCompanyName,
     vendor_name: cleanVendorName,
     avatar_url: cleanAvatarUrl,
+    avatar_position: cleanAvatarPosition,
+    avatar_scale: cleanAvatarScale,
     updated_at: new Date().toISOString(),
     // Preserve account type metadata
     account_type: existingMeta["account_type"],
@@ -142,6 +208,8 @@ export async function updateUserProfile(
         company_name: cleanCompanyName,
         vendor_name: cleanVendorName,
         avatar_url: cleanAvatarUrl,
+        avatar_position: cleanAvatarPosition,
+        avatar_scale: cleanAvatarScale,
         updated_at: new Date().toISOString(),
       },
       { onConflict: "id" },
@@ -158,6 +226,7 @@ export async function updateUserProfile(
           id: user.id,
           email: user.email || "",
           nama: cleanFullName,
+          avatar_url: cleanAvatarUrl,
         },
         { onConflict: "id" },
       );
@@ -174,6 +243,8 @@ export async function updateUserProfile(
     company_name: cleanCompanyName,
     vendor_name: cleanVendorName,
     avatar_url: cleanAvatarUrl,
+    avatar_position: cleanAvatarPosition,
+    avatar_scale: cleanAvatarScale,
     updated_at: new Date().toISOString(),
   };
 }
@@ -183,9 +254,9 @@ export async function updateUserProfile(
  * Memvalidasi ukuran (maks 2MB) dan format gambar.
  */
 export async function uploadAvatarFile(user: User, file: File): Promise<string> {
-  const MAX_SIZE = 2 * 1024 * 1024; // 2MB
+  const MAX_SIZE = 10 * 1024 * 1024; // 10MB untuk menjaga kualitas tinggi tanpa pecah
   if (file.size > MAX_SIZE) {
-    throw new Error("Ukuran foto profil maksimal 2MB.");
+    throw new Error("Ukuran foto profil maksimal 10MB.");
   }
 
   const validTypes = ["image/jpeg", "image/png", "image/webp", "image/gif"];

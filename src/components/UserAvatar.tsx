@@ -1,89 +1,112 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { getHighResolutionAvatarUrl, getAvatarSrcSet } from "@/lib/avatarUtils";
+import satriaRedAvatar from "@/assets/images/satria_avatar_red_1790582692896.jpg";
 
 export function UserAvatar({
   className = "size-16",
   status = "online",
   avatarUrl,
   nama,
+  position,
+  scale,
 }: {
   className?: string;
   status?: "online" | "offline" | "busy";
   avatarUrl?: string | null;
   nama?: string | null;
+  position?: string | null;
+  scale?: number | null;
 }) {
   const [imgError, setImgError] = useState(false);
 
+  // Gunakan URL resolusi penuh asli (anti-thumbnail / anti-blur / minimal 1024x1024)
+  const effectiveRawUrl = avatarUrl || satriaRedAvatar;
+  const highResUrl = getHighResolutionAvatarUrl(effectiveRawUrl) || effectiveRawUrl;
+  const srcSet = getAvatarSrcSet(highResUrl);
+
+  // Reset imgError if avatarUrl changes
+  useEffect(() => {
+    setImgError(false);
+  }, [avatarUrl]);
+
+  // Client-side fallback for stored position and scale to prevent SSR hydration mismatch
+  const [clientPosition, setClientPosition] = useState<string | null>(null);
+  const [clientScale, setClientScale] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (!position && typeof window !== "undefined") {
+      const stored = localStorage.getItem("workhub_avatar_position");
+      if (stored) setClientPosition(stored);
+    }
+    if ((scale === null || scale === undefined) && typeof window !== "undefined") {
+      const stored = localStorage.getItem("workhub_avatar_scale");
+      if (stored) setClientScale(parseFloat(stored));
+    }
+  }, [position, scale]);
+
+  const effectivePosition = position || clientPosition || "50% 50%";
+  const effectiveScale =
+    scale !== null && scale !== undefined && !isNaN(scale)
+      ? Number(scale)
+      : clientScale !== null && !isNaN(clientScale)
+        ? clientScale
+        : 1;
+
   return (
-    <div className="relative inline-block">
+    <div className="relative inline-block shrink-0">
       <div
-        className={`relative overflow-hidden rounded-full border-2 border-indigo-100 dark:border-slate-700 bg-amber-50 dark:bg-slate-800 shadow-sm flex items-center justify-center ${className}`}
+        className={`relative border-2 border-indigo-100 dark:border-slate-700 bg-amber-50 dark:bg-slate-800 shadow-sm flex items-center justify-center ${className}`}
+        style={{
+          borderRadius: "50%",
+          overflow: "hidden",
+          isolation: "isolate",
+        }}
       >
-        {avatarUrl && !imgError ? (
+        {highResUrl && !imgError ? (
           <img
-            src={avatarUrl}
+            src={highResUrl}
+            srcSet={srcSet}
             alt={nama || "Foto Profil"}
-            className="size-full object-cover rounded-full"
+            className="size-full select-none"
+            style={{
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+              objectPosition: effectivePosition,
+              transform: effectiveScale !== 1 ? `scale(${effectiveScale})` : undefined,
+              transformOrigin: effectivePosition,
+              imageRendering: "auto",
+              WebkitBackfaceVisibility: "hidden",
+              backfaceVisibility: "hidden",
+            }}
+            loading="eager"
+            decoding="async"
+            draggable={false}
             referrerPolicy="no-referrer"
-            onError={() => setImgError(true)}
+            onError={() => {
+              if (highResUrl !== satriaRedAvatar) {
+                // Fallback ke aset HD lokal 1024x1024 jika url kustom bermasalah
+                setImgError(false);
+              } else {
+                setImgError(true);
+              }
+            }}
           />
         ) : (
-          /* Stylized Modern Avatar SVG matching the reference image */
-          <svg
-            viewBox="0 0 100 100"
-            className="size-full object-cover"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            {/* Background circle gradient */}
-            <circle cx="50" cy="50" r="50" fill="#F3F4F6" />
-            {/* Shoulders / Shirt */}
-            <path d="M20 92C20 76 33 67 50 67C67 67 80 76 80 92V100H20V92Z" fill="#3B4252" />
-            <path d="M38 68L50 78L62 68V80L50 88L38 80V68Z" fill="#EBCB8B" />
-            {/* Neck */}
-            <rect x="43" y="55" width="14" height="15" rx="4" fill="#F6C8A4" />
-            {/* Head & Face */}
-            <ellipse cx="50" cy="42" rx="17" ry="21" fill="#F6C8A4" />
-            {/* Hair */}
-            <path
-              d="M32 38C32 25 39 16 50 16C61 16 68 25 68 38C68 41 66 38 64 34C60 28 54 26 50 26C45 26 40 28 36 34C34 38 32 41 32 38Z"
-              fill="#2E3440"
-            />
-            {/* Ears */}
-            <circle cx="33" cy="42" r="3.5" fill="#F6C8A4" />
-            <circle cx="67" cy="42" r="3.5" fill="#F6C8A4" />
-            {/* Glasses Frame */}
-            <rect
-              x="36"
-              y="36"
-              width="11"
-              height="9"
-              rx="2"
-              fill="none"
-              stroke="#2E3440"
-              strokeWidth="2.5"
-            />
-            <rect
-              x="53"
-              y="36"
-              width="11"
-              height="9"
-              rx="2"
-              fill="none"
-              stroke="#2E3440"
-              strokeWidth="2.5"
-            />
-            <line x1="47" y1="40" x2="53" y2="40" stroke="#2E3440" strokeWidth="2.5" />
-            {/* Eyes */}
-            <circle cx="41.5" cy="40.5" r="1.5" fill="#2E3440" />
-            <circle cx="58.5" cy="40.5" r="1.5" fill="#2E3440" />
-            {/* Smile */}
-            <path
-              d="M45 52C47 54 53 54 55 52"
-              stroke="#D08770"
-              strokeWidth="2"
-              strokeLinecap="round"
-            />
-          </svg>
+          <img
+            src={satriaRedAvatar}
+            srcSet={`${satriaRedAvatar} 1x, ${satriaRedAvatar} 2x`}
+            alt={nama || "Foto Profil"}
+            className="size-full select-none"
+            style={{
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+              objectPosition: "50% 50%",
+            }}
+            loading="eager"
+            decoding="async"
+          />
         )}
       </div>
 

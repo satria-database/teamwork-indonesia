@@ -30,6 +30,7 @@ export type CVData = {
   spesialisasi_kompetensi?: string[];
   foto_url?: string | null;
   foto_position?: string | null;
+  foto_scale?: number | null;
   judul_tentang_saya?: string;
   judul_pendidikan?: string;
   judul_pengalaman?: string;
@@ -41,7 +42,7 @@ export type CVData = {
 export const DEFAULT_CV_SATRIA: CVData = {
   nama_lengkap: "SATRIA NUR ARDIANSYAH",
   headline: "Cataloger Elins Staff & Data Standardization",
-  alamat: "Teuku Umar Street, Latsari 2 No. 57, Tuban, East Java",
+  alamat: "Jl. Teuku Umar, Latsari 2 No.57 Tuban–Jawa Timur",
   telepon: "081216130661",
   email: "satria62317@gmail.com",
   linkedin: "www.linkedin.com/in/satria-nur16",
@@ -128,6 +129,7 @@ export const DEFAULT_CV_SATRIA: CVData = {
   ],
   foto_url: satriaRedAvatar,
   foto_position: "center center",
+  foto_scale: 1,
   judul_tentang_saya: "Tentang Saya",
   judul_pendidikan: "Riwayat Pendidikan",
   judul_pengalaman: "Pengalaman Kerja",
@@ -178,20 +180,30 @@ export function createDefaultCVForUser(
     pendidikan: [
       {
         id: "edu-default-1",
-        institusi: "Pendidikan Tinggi / Menengah",
-        jurusan: "Studi Terkait",
-        periode: "Lulusan",
+        institusi: "Universitas Terbuka",
+        jurusan: "S1 Management",
+        periode: "2023 – Present",
+      },
+      {
+        id: "edu-default-2",
+        institusi: "SMK Negeri 1 Tuban",
+        jurusan: "Electrical Power Installation Engineering",
+        periode: "2017 – 2020",
       },
     ],
     keahlian: [
-      "Manajemen Tugas",
-      "Analisis Kerja",
-      "Administrasi Digital",
-      "Komunikasi Efektif",
-      "Problem Solving",
+      "Microsoft Office",
+      "Material Cataloging & Product Standardization",
+      "Data Management & Data Entry",
     ],
-    foto_url: null,
+    spesialisasi_kompetensi: [
+      "Sertifikasi Kompetensi Kelistrikan & Instrumentasi Industri",
+      "Standarisasi Material & Kodifikasi SAP/FORCA",
+      "Manajemen Pengadaan & Estimasi HPP / BOQ",
+    ],
+    foto_url: satriaRedAvatar,
     foto_position: "center center",
+    foto_scale: 1,
     judul_tentang_saya: "Tentang Saya",
     judul_pendidikan: "1. Riwayat Pendidikan",
     judul_pengalaman: "2. Pengalaman Kerja",

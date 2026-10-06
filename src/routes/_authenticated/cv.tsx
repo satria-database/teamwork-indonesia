@@ -63,6 +63,13 @@ import {
   type RiwayatPendidikan,
 } from "@/lib/cvData";
 import satriaRedAvatar from "@/assets/images/satria_avatar_red_1790582692896.jpg";
+import { PhotoPrecisionControl } from "@/components/PhotoPrecisionControl";
+import { getLandingConfig, saveLandingConfig, saveUnifiedLandingAvatar } from "@/lib/landingConfig";
+import {
+  getHighResolutionAvatarUrl,
+  getAvatarSrcSet,
+  optimizeAvatarImageForUpload,
+} from "@/lib/avatarUtils";
 
 const SQL_SCHEMA_SNIPPET = `-- Jalankan skrip ini di Supabase Dashboard > SQL Editor:
 create table if not exists public.curriculum_vitae (
@@ -98,7 +105,7 @@ grant all on public.curriculum_vitae to service_role;`;
 
 function CurriculumVitaePage() {
   const { user, isAdmin, effectiveUserId } = useAuth();
-  const { profile } = useProfile();
+  const { profile, updateProfile } = useProfile();
 
   const [cv, setCv] = useState<CVData>(() =>
     createDefaultCVForUser(user?.email, profile ?? undefined),
@@ -232,15 +239,18 @@ function CurriculumVitaePage() {
                 ? data.spesialisasi_kompetensi
                 : fallback.spesialisasi_kompetensi,
             foto_url: data.foto_url || fallback.foto_url || satriaRedAvatar,
-            foto_position: data.foto_position || fallback.foto_position || "center center",
+            foto_position: data.foto_position || fallback.foto_position || "50% 50%",
+            foto_scale:
+              data.foto_scale !== undefined && data.foto_scale !== null
+                ? Number(data.foto_scale)
+                : fallback.foto_scale || 1,
             judul_tentang_saya:
               data.judul_tentang_saya || fallback.judul_tentang_saya || "Tentang Saya",
             judul_pendidikan:
               data.judul_pendidikan || fallback.judul_pendidikan || "1. Riwayat Pendidikan",
             judul_pengalaman:
               data.judul_pengalaman || fallback.judul_pengalaman || "2. Pengalaman Kerja",
-            judul_keahlian:
-              data.judul_keahlian || fallback.judul_keahlian || "3. Keahlian Utama",
+            judul_keahlian: data.judul_keahlian || fallback.judul_keahlian || "3. Keahlian Utama",
             judul_kompetensi:
               data.judul_kompetensi || fallback.judul_kompetensi || "4. Spesialisasi Kompetensi",
           });
@@ -345,6 +355,10 @@ function CurriculumVitaePage() {
                 typeof row["foto_position"] === "string"
                   ? row["foto_position"]
                   : (prev.foto_position ?? null),
+              foto_scale:
+                row["foto_scale"] !== undefined && row["foto_scale"] !== null
+                  ? Number(row["foto_scale"])
+                  : prev.foto_scale,
               judul_tentang_saya:
                 typeof row["judul_tentang_saya"] === "string"
                   ? row["judul_tentang_saya"]
@@ -493,7 +507,8 @@ function CurriculumVitaePage() {
           judul_keahlian: cv.judul_keahlian || "3. Keahlian Utama",
           judul_kompetensi: cv.judul_kompetensi || "4. Spesialisasi Kompetensi",
           foto_url: cv.foto_url || null,
-          foto_position: cv.foto_position || "center center",
+          foto_position: cv.foto_position || "50% 50%",
+          foto_scale: cv.foto_scale ? Number(cv.foto_scale) : 1,
           diperbarui_pada: new Date().toISOString(),
         },
         { onConflict: "user_id" },
@@ -741,16 +756,26 @@ function CurriculumVitaePage() {
             <div className="flex flex-col sm:flex-row gap-5 items-start">
               {/* Photo Preview */}
               <div className="relative shrink-0">
-                <div
-                  className="size-28 rounded-2xl overflow-hidden border-2 border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 shadow-sm"
-                  style={{ objectPosition: cv.foto_position || "center center" }}
-                >
+                <div className="size-28 rounded-2xl overflow-hidden border-2 border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 shadow-sm">
                   {cv.foto_url ? (
                     <img
-                      src={cv.foto_url}
+                      src={getHighResolutionAvatarUrl(cv.foto_url) || cv.foto_url}
+                      srcSet={getAvatarSrcSet(cv.foto_url)}
                       alt="Foto Profil CV"
-                      className="w-full h-full object-cover"
-                      style={{ objectPosition: cv.foto_position || "center center" }}
+                      className="size-full object-cover select-none transition-transform"
+                      style={{
+                        objectPosition: cv.foto_position || "50% 50%",
+                        transform:
+                          cv.foto_scale && cv.foto_scale !== 1
+                            ? `scale(${cv.foto_scale})`
+                            : undefined,
+                        transformOrigin: cv.foto_position || "50% 50%",
+                        imageRendering: "auto",
+                        WebkitBackfaceVisibility: "hidden",
+                        backfaceVisibility: "hidden",
+                      }}
+                      loading="eager"
+                      decoding="async"
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center bg-gradient-to-tr from-indigo-600 via-indigo-700 to-violet-600 text-white font-black text-2xl">
@@ -770,7 +795,7 @@ function CurriculumVitaePage() {
               <div className="flex-1 space-y-3 w-full">
                 <div className="flex items-center gap-2 flex-wrap">
                   <Label htmlFor="cv-foto-upload" className="cursor-pointer">
-                    <div className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold cursor-pointer transition-colors">
+                    <div className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold cursor-pointer transition-colors shadow-xs">
                       <Plus className="size-3.5" />
                       {cv.foto_url ? "Ganti Foto" : "Upload Foto"}
                     </div>
@@ -781,22 +806,47 @@ function CurriculumVitaePage() {
                     accept="image/*"
                     className="hidden"
                     onChange={async (e) => {
-                      const file = e.target.files?.[0];
-                      if (!file || !user?.id) return;
-                      if (file.size > 2 * 1024 * 1024) {
-                        toast.error("Ukuran foto maksimal 2MB");
+                      const rawFile = e.target.files?.[0];
+                      if (!rawFile) return;
+                      if (rawFile.size > 10 * 1024 * 1024) {
+                        toast.error("Ukuran foto maksimal 10MB");
                         return;
                       }
                       try {
-                        const cleanName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
-                        const path = `cv-photos/${user.id}/${Date.now()}-${cleanName}`;
-                        const uploadRes = await supabase.storage.from("avatars").upload(path, file);
-                        if (uploadRes.error) throw uploadRes.error;
-                        const { data: urlData } = supabase.storage
-                          .from("avatars")
-                          .getPublicUrl(path);
-                        setCv({ ...cv, foto_url: urlData.publicUrl });
-                        toast.success("Foto berhasil diunggah!");
+                        // Optimasi foto agar resolusi tetap HD tanpa pecah dan aman dari limit storage
+                        const { file, dataUrl } = await optimizeAvatarImageForUpload(rawFile);
+                        let newUrl = dataUrl;
+
+                        if (user?.id) {
+                          const cleanName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
+                          const path = `${user.id}/cv_${Date.now()}_${cleanName}`;
+                          try {
+                            const uploadRes = await supabase.storage
+                              .from("avatars")
+                              .upload(path, file, { cacheControl: "3600", upsert: true });
+                            if (!uploadRes.error) {
+                              const { data: urlData } = supabase.storage
+                                .from("avatars")
+                                .getPublicUrl(path);
+                              if (urlData?.publicUrl) {
+                                newUrl = urlData.publicUrl;
+                              }
+                            }
+                          } catch {
+                            // fallback to dataUrl
+                          }
+                        }
+
+                        setCv((prev) => ({ ...prev, foto_url: newUrl }));
+                        await saveUnifiedLandingAvatar({
+                          avatarUrl: newUrl,
+                          position: cv.foto_position,
+                          scale: cv.foto_scale,
+                          userId: user?.id,
+                        });
+                        toast.success(
+                          "Foto berhasil diunggah dan disinkronkan ke seluruh halaman depan!",
+                        );
                       } catch (err) {
                         toast.error(err instanceof Error ? err.message : "Gagal mengunggah foto");
                       }
@@ -807,7 +857,16 @@ function CurriculumVitaePage() {
                       type="button"
                       variant="outline"
                       size="sm"
-                      onClick={() => setCv({ ...cv, foto_url: null })}
+                      onClick={async () => {
+                        setCv((prev) => ({ ...prev, foto_url: null }));
+                        await saveUnifiedLandingAvatar({
+                          avatarUrl: null,
+                          position: cv.foto_position,
+                          scale: cv.foto_scale,
+                          userId: user.id,
+                        });
+                        toast.info("Foto profil CV & landing page direset.");
+                      }}
                       className="rounded-xl text-xs font-semibold h-9 px-3 gap-1.5 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 border-slate-200 dark:border-slate-700 cursor-pointer"
                     >
                       <Trash2 className="size-3.5" />
@@ -816,82 +875,55 @@ function CurriculumVitaePage() {
                   )}
                 </div>
 
-                {/* Position Adjustment */}
-                {cv.foto_url && (
-                  <div className="space-y-2 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700">
-                    <Label className="text-[11px] font-semibold text-slate-500 flex items-center gap-1">
-                      <SlidersHorizontal className="size-3" />
-                      Atur Posisi Foto
-                    </Label>
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="space-y-1">
-                        <Label className="text-[10px] text-slate-400">Horizontal</Label>
-                        <input
-                          type="range"
-                          min="0"
-                          max="100"
-                          value={(() => {
-                            const pos = cv.foto_position || "center center";
-                            const match = pos.match(/(\d+)%\s+(\d+)%/);
-                            return match ? match[1] : "50";
-                          })()}
-                          onChange={(e) => {
-                            const yMatch = (cv.foto_position || "50% 50%").match(/(\d+)%\s+(\d+)%/);
-                            const yVal = yMatch ? yMatch[2] : "50";
-                            setCv({ ...cv, foto_position: `${e.target.value}% ${yVal}%` });
-                          }}
-                          className="w-full accent-indigo-600 h-1.5"
-                        />
-                      </div>
-                      <div className="space-y-1">
-                        <Label className="text-[10px] text-slate-400">Vertikal</Label>
-                        <input
-                          type="range"
-                          min="0"
-                          max="100"
-                          value={(() => {
-                            const pos = cv.foto_position || "center center";
-                            const match = pos.match(/(\d+)%\s+(\d+)%/);
-                            return match ? match[2] : "50";
-                          })()}
-                          onChange={(e) => {
-                            const xMatch = (cv.foto_position || "50% 50%").match(/(\d+)%\s+(\d+)%/);
-                            const xVal = xMatch ? xMatch[1] : "50";
-                            setCv({ ...cv, foto_position: `${xVal}% ${e.target.value}%` });
-                          }}
-                          className="w-full accent-indigo-600 h-1.5"
-                        />
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-1.5 flex-wrap pt-1">
-                      {[
-                        { label: "Tengah", value: "50% 50%" },
-                        { label: "Atas", value: "50% 0%" },
-                        { label: "Bawah", value: "50% 100%" },
-                        { label: "Kiri", value: "0% 50%" },
-                        { label: "Kanan", value: "100% 50%" },
-                      ].map((preset) => (
-                        <button
-                          key={preset.value}
-                          type="button"
-                          onClick={() => setCv({ ...cv, foto_position: preset.value })}
-                          className={`text-[10px] px-2 py-1 rounded-md font-medium transition-colors ${
-                            cv.foto_position === preset.value
-                              ? "bg-indigo-600 text-white"
-                              : "bg-white dark:bg-slate-800 text-slate-500 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700"
-                          }`}
-                        >
-                          {preset.label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
                 <p className="text-[11px] text-slate-400">
-                  Format: JPG/PNG/WebP. Maksimal 2MB. Foto akan tampil di CV dan landing page.
+                  Format: JPG/PNG/WebP. Maksimal 10MB. Gunakan panel presisi di bawah untuk
+                  menyesuaikan fokus wajah dan zoom.
                 </p>
               </div>
             </div>
+
+            {/* Panel Presisi & Zoom Lengkap (Anti-Pecah & Presisi untuk CV) */}
+            {cv.foto_url && (
+              <PhotoPrecisionControl
+                imageUrl={cv.foto_url}
+                position={cv.foto_position || "50% 50%"}
+                scale={cv.foto_scale || 1}
+                onChange={async (newPos, newScale) => {
+                  setCv((prev) => ({ ...prev, foto_position: newPos, foto_scale: newScale }));
+                  await saveUnifiedLandingAvatar({
+                    avatarUrl: cv.foto_url,
+                    position: newPos,
+                    scale: newScale,
+                    userId: user?.id,
+                  });
+                }}
+                onSyncAll={async (newPos, newScale) => {
+                  setCv((prev) => ({ ...prev, foto_position: newPos, foto_scale: newScale }));
+                  if (user) {
+                    try {
+                      await updateProfile({
+                        full_name: cv.nama_lengkap || profile?.full_name || "Pengguna",
+                        avatar_position: newPos,
+                        avatar_scale: newScale,
+                      });
+                      await saveUnifiedLandingAvatar({
+                        avatarUrl: cv.foto_url,
+                        position: newPos,
+                        scale: newScale,
+                        userId: user.id,
+                      });
+                      toast.success(
+                        "Presisi foto berhasil diterapkan ke Foto Profil, CV, dan Landing Page!",
+                      );
+                    } catch {
+                      toast.success("Presisi foto diterapkan!");
+                    }
+                  }
+                }}
+                title="Presisikan Posisi & Zoom Foto CV"
+                subtitle="Atur posisi wajah dan skala zoom agar foto pasfoto di CV tampil proporsional, tajam, dan tidak pecah."
+              />
+            )}
           </div>
 
           {/* 1. Informasi Pribadi */}
@@ -953,24 +985,182 @@ function CurriculumVitaePage() {
             </div>
           </div>
 
-          {/* 2. Tentang Saya */}
+          {/* Kustomisasi Judul Seksi CV */}
+          <div className="space-y-3 pt-2 p-4 rounded-2xl bg-indigo-50/50 dark:bg-indigo-950/20 border border-indigo-100 dark:border-indigo-900/50">
+            <div>
+              <h4 className="text-xs font-bold uppercase tracking-wider text-indigo-700 dark:text-indigo-300">
+                Kustomisasi Judul Seksi CV
+              </h4>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                Sesuaikan teks judul seksi CV yang tampil di pratinjau, cetak PDF, dan halaman
+                depan.
+              </p>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              <div className="space-y-1">
+                <Label className="text-[11px] text-slate-600 dark:text-slate-400">
+                  Judul Tentang Saya
+                </Label>
+                <Input
+                  value={cv.judul_tentang_saya ?? "Tentang Saya"}
+                  onChange={(e) => setCv({ ...cv, judul_tentang_saya: e.target.value })}
+                  placeholder="Tentang Saya / SUMMARY"
+                  className="rounded-xl text-xs h-8 bg-white dark:bg-slate-900"
+                />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-[11px] text-slate-600 dark:text-slate-400">
+                  Judul Pendidikan (1)
+                </Label>
+                <Input
+                  value={cv.judul_pendidikan ?? "1. Riwayat Pendidikan"}
+                  onChange={(e) => setCv({ ...cv, judul_pendidikan: e.target.value })}
+                  placeholder="1. Riwayat Pendidikan / EDUCATION"
+                  className="rounded-xl text-xs h-8 bg-white dark:bg-slate-900"
+                />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-[11px] text-slate-600 dark:text-slate-400">
+                  Judul Pengalaman (2)
+                </Label>
+                <Input
+                  value={cv.judul_pengalaman ?? "2. Pengalaman Kerja"}
+                  onChange={(e) => setCv({ ...cv, judul_pengalaman: e.target.value })}
+                  placeholder="2. Pengalaman Kerja / WORK EXPERIENCE"
+                  className="rounded-xl text-xs h-8 bg-white dark:bg-slate-900"
+                />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-[11px] text-slate-600 dark:text-slate-400">
+                  Judul Keahlian (3)
+                </Label>
+                <Input
+                  value={cv.judul_keahlian ?? "3. Keahlian Utama"}
+                  onChange={(e) => setCv({ ...cv, judul_keahlian: e.target.value })}
+                  placeholder="3. Keahlian Utama / SKILL INFORMATION"
+                  className="rounded-xl text-xs h-8 bg-white dark:bg-slate-900"
+                />
+              </div>
+              <div className="space-y-1 sm:col-span-2 lg:col-span-2">
+                <Label className="text-[11px] text-slate-600 dark:text-slate-400">
+                  Judul Spesialisasi Kompetensi (4)
+                </Label>
+                <Input
+                  value={cv.judul_kompetensi ?? "4. Spesialisasi Kompetensi"}
+                  onChange={(e) => setCv({ ...cv, judul_kompetensi: e.target.value })}
+                  placeholder="4. Spesialisasi Kompetensi / COMPETENCY CERTIFICATION"
+                  className="rounded-xl text-xs h-8 bg-white dark:bg-slate-900"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Ringkasan Profil / Tentang Saya */}
           <div className="space-y-2 pt-2">
             <h4 className="text-xs font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">
-              2. Tentang Saya / Profil Profesional
+              {cv.judul_tentang_saya || "Tentang Saya"} / Profil Profesional
             </h4>
             <Textarea
               value={cv.tentang_saya}
               onChange={(e) => setCv({ ...cv, tentang_saya: e.target.value })}
-              rows={4}
+              rows={3}
               className="rounded-xl text-xs leading-relaxed"
             />
           </div>
 
-          {/* 3. Pengalaman Kerja */}
+          {/* 1. Pendidikan */}
           <div className="space-y-4 pt-2">
             <div className="flex items-center justify-between">
               <h4 className="text-xs font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">
-                3. Pengalaman Kerja ({cv.pengalaman.length})
+                {cv.judul_pendidikan || "1. Riwayat Pendidikan"} ({cv.pendidikan.length})
+              </h4>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const newEdu: RiwayatPendidikan = {
+                    id: `edu-${Date.now()}`,
+                    institusi: "Nama Sekolah / Universitas",
+                    jurusan: "Nama Jurusan / Program Studi",
+                    periode: "Tahun – Tahun",
+                  };
+                  setCv({ ...cv, pendidikan: [...cv.pendidikan, newEdu] });
+                }}
+                className="rounded-xl text-xs font-semibold gap-1 h-8 cursor-pointer"
+              >
+                <Plus className="size-3.5" />
+                Tambah Pendidikan
+              </Button>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {cv.pendidikan.map((edu, index) => (
+                <div
+                  key={edu.id}
+                  className="p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/40 space-y-2 relative"
+                >
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setCv({
+                        ...cv,
+                        pendidikan: cv.pendidikan.filter((e) => e.id !== edu.id),
+                      });
+                    }}
+                    className="absolute right-2 top-2 text-rose-500 hover:text-rose-600 rounded-lg size-7 p-0 cursor-pointer"
+                  >
+                    <Trash2 className="size-3.5" />
+                  </Button>
+
+                  <div>
+                    <Label className="text-[11px] text-slate-500">Institusi</Label>
+                    <Input
+                      value={edu.institusi}
+                      onChange={(e) => {
+                        const updated = [...cv.pendidikan];
+                        updated[index]!.institusi = e.target.value;
+                        setCv({ ...cv, pendidikan: updated });
+                      }}
+                      className="rounded-xl text-xs h-8 mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-[11px] text-slate-500">Jurusan / Program Studi</Label>
+                    <Input
+                      value={edu.jurusan}
+                      onChange={(e) => {
+                        const updated = [...cv.pendidikan];
+                        updated[index]!.jurusan = e.target.value;
+                        setCv({ ...cv, pendidikan: updated });
+                      }}
+                      className="rounded-xl text-xs h-8 mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-[11px] text-slate-500">Tahun / Periode</Label>
+                    <Input
+                      value={edu.periode}
+                      onChange={(e) => {
+                        const updated = [...cv.pendidikan];
+                        updated[index]!.periode = e.target.value;
+                        setCv({ ...cv, pendidikan: updated });
+                      }}
+                      className="rounded-xl text-xs h-8 mt-1"
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* 2. Pengalaman Kerja */}
+          <div className="space-y-4 pt-2">
+            <div className="flex items-center justify-between">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">
+                {cv.judul_pengalaman || "2. Pengalaman Kerja"} ({cv.pengalaman.length})
               </h4>
               <Button
                 type="button"
@@ -1080,98 +1270,10 @@ function CurriculumVitaePage() {
             </div>
           </div>
 
-          {/* 4. Pendidikan */}
-          <div className="space-y-4 pt-2">
-            <div className="flex items-center justify-between">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">
-                4. Riwayat Pendidikan ({cv.pendidikan.length})
-              </h4>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  const newEdu: RiwayatPendidikan = {
-                    id: `edu-${Date.now()}`,
-                    institusi: "Nama Sekolah / Universitas",
-                    jurusan: "Nama Jurusan / Program Studi",
-                    periode: "Tahun – Tahun",
-                  };
-                  setCv({ ...cv, pendidikan: [...cv.pendidikan, newEdu] });
-                }}
-                className="rounded-xl text-xs font-semibold gap-1 h-8 cursor-pointer"
-              >
-                <Plus className="size-3.5" />
-                Tambah Pendidikan
-              </Button>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {cv.pendidikan.map((edu, index) => (
-                <div
-                  key={edu.id}
-                  className="p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/40 space-y-2 relative"
-                >
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => {
-                      setCv({
-                        ...cv,
-                        pendidikan: cv.pendidikan.filter((e) => e.id !== edu.id),
-                      });
-                    }}
-                    className="absolute right-2 top-2 text-rose-500 hover:text-rose-600 rounded-lg size-7 p-0 cursor-pointer"
-                  >
-                    <Trash2 className="size-3.5" />
-                  </Button>
-
-                  <div>
-                    <Label className="text-[11px] text-slate-500">Institusi</Label>
-                    <Input
-                      value={edu.institusi}
-                      onChange={(e) => {
-                        const updated = [...cv.pendidikan];
-                        updated[index]!.institusi = e.target.value;
-                        setCv({ ...cv, pendidikan: updated });
-                      }}
-                      className="rounded-xl text-xs h-8 mt-1"
-                    />
-                  </div>
-                  <div>
-                    <Label className="text-[11px] text-slate-500">Jurusan / Program Studi</Label>
-                    <Input
-                      value={edu.jurusan}
-                      onChange={(e) => {
-                        const updated = [...cv.pendidikan];
-                        updated[index]!.jurusan = e.target.value;
-                        setCv({ ...cv, pendidikan: updated });
-                      }}
-                      className="rounded-xl text-xs h-8 mt-1"
-                    />
-                  </div>
-                  <div>
-                    <Label className="text-[11px] text-slate-500">Tahun / Periode</Label>
-                    <Input
-                      value={edu.periode}
-                      onChange={(e) => {
-                        const updated = [...cv.pendidikan];
-                        updated[index]!.periode = e.target.value;
-                        setCv({ ...cv, pendidikan: updated });
-                      }}
-                      className="rounded-xl text-xs h-8 mt-1"
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* 5. Keahlian */}
+          {/* 3. Keahlian Utama */}
           <div className="space-y-3 pt-2">
             <h4 className="text-xs font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">
-              5. Keahlian & Keterampilan
+              {cv.judul_keahlian || "3. Keahlian Utama"}
             </h4>
             <div className="flex flex-wrap gap-2">
               {cv.keahlian.map((skill, index) => (
@@ -1221,6 +1323,79 @@ function CurriculumVitaePage() {
                     const val = input.value.trim();
                     if (!cv.keahlian.includes(val)) {
                       setCv({ ...cv, keahlian: [...cv.keahlian, val] });
+                      input.value = "";
+                    }
+                  }
+                }}
+                className="rounded-xl text-xs h-8 cursor-pointer shrink-0"
+              >
+                Tambah
+              </Button>
+            </div>
+          </div>
+
+          {/* 4. Spesialisasi Kompetensi */}
+          <div className="space-y-3 pt-2">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">
+              {cv.judul_kompetensi || "4. Spesialisasi Kompetensi"}
+            </h4>
+            <div className="space-y-2">
+              {(cv.spesialisasi_kompetensi && cv.spesialisasi_kompetensi.length > 0
+                ? cv.spesialisasi_kompetensi
+                : cv.sertifikasi && cv.sertifikasi.length > 0
+                  ? cv.sertifikasi
+                  : []
+              ).map((komp, index) => (
+                <div
+                  key={index}
+                  className="flex items-center justify-between gap-2 p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-800 text-xs"
+                >
+                  <span className="font-medium text-slate-800 dark:text-slate-200">{komp}</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const list = (cv.spesialisasi_kompetensi || cv.sertifikasi || []).filter(
+                        (_, i) => i !== index,
+                      );
+                      setCv({ ...cv, spesialisasi_kompetensi: list, sertifikasi: list });
+                    }}
+                    className="text-rose-500 hover:text-rose-600 p-1 cursor-pointer"
+                  >
+                    <Trash2 className="size-3.5" />
+                  </button>
+                </div>
+              ))}
+            </div>
+            <div className="flex items-center gap-2 max-w-md pt-1">
+              <Input
+                id="inputKompetensiBaru"
+                placeholder="Tambah spesialisasi kompetensi baru..."
+                className="rounded-xl text-xs h-8"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    const val = (e.target as HTMLInputElement).value.trim();
+                    const list = cv.spesialisasi_kompetensi || cv.sertifikasi || [];
+                    if (val && !list.includes(val)) {
+                      const updated = [...list, val];
+                      setCv({ ...cv, spesialisasi_kompetensi: updated, sertifikasi: updated });
+                      (e.target as HTMLInputElement).value = "";
+                    }
+                  }
+                }}
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const input = document.getElementById("inputKompetensiBaru") as HTMLInputElement;
+                  if (input && input.value.trim()) {
+                    const val = input.value.trim();
+                    const list = cv.spesialisasi_kompetensi || cv.sertifikasi || [];
+                    if (!list.includes(val)) {
+                      const updated = [...list, val];
+                      setCv({ ...cv, spesialisasi_kompetensi: updated, sertifikasi: updated });
                       input.value = "";
                     }
                   }
@@ -1332,12 +1507,23 @@ function CurriculumVitaePage() {
           {/* HEADER: FOTO DI KIRI + DETAIL DI KANAN */}
           <div className="flex items-start gap-5 sm:gap-7 pb-4">
             {/* Foto Portrait Berlatar Merah Sesuai PDF */}
-            <div className="shrink-0">
+            <div className="shrink-0 w-[105px] h-[140px] sm:w-[115px] sm:h-[152px] overflow-hidden border border-slate-300 shadow-2xs bg-slate-100">
               <img
-                src={cv.foto_url || satriaRedAvatar}
+                src={getHighResolutionAvatarUrl(cv.foto_url) || satriaRedAvatar}
+                srcSet={getAvatarSrcSet(cv.foto_url || satriaRedAvatar)}
                 alt={cv.nama_lengkap}
-                className="w-[105px] h-[140px] sm:w-[115px] sm:h-[152px] object-cover border border-slate-300 shadow-2xs"
-                style={{ objectPosition: cv.foto_position || "center center" }}
+                className="size-full object-cover select-none transition-transform"
+                style={{
+                  objectPosition: cv.foto_position || "50% 50%",
+                  transform:
+                    cv.foto_scale && cv.foto_scale !== 1 ? `scale(${cv.foto_scale})` : undefined,
+                  transformOrigin: cv.foto_position || "50% 50%",
+                  imageRendering: "auto",
+                  WebkitBackfaceVisibility: "hidden",
+                  backfaceVisibility: "hidden",
+                }}
+                loading="eager"
+                decoding="async"
               />
             </div>
 
@@ -1379,11 +1565,11 @@ function CurriculumVitaePage() {
             </div>
           </div>
 
-          {/* 1. SUMMARY */}
+          {/* 1. SUMMARY / TENTANG SAYA */}
           {cv.tentang_saya && (
             <div className="cv-section space-y-1.5 pt-1">
               <h2 className="cv-section-title text-[13.5px] sm:text-sm font-bold uppercase tracking-wider text-[#0f2b5c] border-b-[1.5px] border-[#0f2b5c] pb-0.5">
-                SUMMARY
+                {cv.judul_tentang_saya || "SUMMARY"}
               </h2>
               <p className="text-[12.5px] sm:text-[13px] text-slate-800 leading-relaxed text-justify">
                 {cv.tentang_saya}
@@ -1391,11 +1577,11 @@ function CurriculumVitaePage() {
             </div>
           )}
 
-          {/* 2. EDUCATION */}
+          {/* 1. EDUCATION / PENDIDIKAN */}
           {cv.pendidikan.length > 0 && (
             <div className="cv-section space-y-2 pt-2">
               <h2 className="cv-section-title text-[13.5px] sm:text-sm font-bold uppercase tracking-wider text-[#0f2b5c] border-b-[1.5px] border-[#0f2b5c] pb-0.5">
-                EDUCATION
+                {cv.judul_pendidikan || "1. EDUCATION"}
               </h2>
               <div className="space-y-2.5 pt-0.5">
                 {cv.pendidikan.map((edu) => (
@@ -1413,11 +1599,11 @@ function CurriculumVitaePage() {
             </div>
           )}
 
-          {/* 3. WORK EXPERIENCE */}
+          {/* 2. WORK EXPERIENCE / PENGALAMAN KERJA */}
           {cv.pengalaman.length > 0 && (
             <div className="cv-section space-y-2.5 pt-2">
               <h2 className="cv-section-title text-[13.5px] sm:text-sm font-bold uppercase tracking-wider text-[#0f2b5c] border-b-[1.5px] border-[#0f2b5c] pb-0.5">
-                WORK EXPERIENCE
+                {cv.judul_pengalaman || "2. WORK EXPERIENCE"}
               </h2>
               <div className="space-y-4 pt-0.5">
                 {cv.pengalaman.map((exp) => (
@@ -1444,29 +1630,11 @@ function CurriculumVitaePage() {
             </div>
           )}
 
-          {/* 4. COMPETENCY CERTIFICATION */}
-          <div className="cv-section space-y-2 pt-2">
-            <h2 className="cv-section-title text-[13.5px] sm:text-sm font-bold uppercase tracking-wider text-[#0f2b5c] border-b-[1.5px] border-[#0f2b5c] pb-0.5">
-              COMPETENCY CERTIFICATION
-            </h2>
-            {cv.sertifikasi && cv.sertifikasi.length > 0 ? (
-              <ul className="list-disc list-outside ml-4 sm:ml-5 space-y-1 text-[12px] sm:text-[12.5px] text-slate-800 pt-0.5">
-                {cv.sertifikasi.map((cert, cIdx) => (
-                  <li key={cIdx} className="pl-0.5">
-                    {cert}
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <div className="text-[12px] text-slate-700 pl-4 pt-0.5">•</div>
-            )}
-          </div>
-
-          {/* 5. SKILL INFORMATION */}
+          {/* 3. SKILL INFORMATION / KEAHLIAN UTAMA */}
           {cv.keahlian.length > 0 && (
             <div className="cv-section space-y-2 pt-2">
               <h2 className="cv-section-title text-[13.5px] sm:text-sm font-bold uppercase tracking-wider text-[#0f2b5c] border-b-[1.5px] border-[#0f2b5c] pb-0.5">
-                SKILL INFORMATION
+                {cv.judul_keahlian || "3. SKILL INFORMATION"}
               </h2>
               <ul className="list-disc list-outside ml-4 sm:ml-5 space-y-1 text-[12px] sm:text-[12.5px] text-slate-800 pt-0.5">
                 {cv.keahlian.map((skill, sIdx) => (
@@ -1477,6 +1645,32 @@ function CurriculumVitaePage() {
               </ul>
             </div>
           )}
+
+          {/* 4. COMPETENCY CERTIFICATION / SPESIALISASI KOMPETENSI */}
+          <div className="cv-section space-y-2 pt-2">
+            <h2 className="cv-section-title text-[13.5px] sm:text-sm font-bold uppercase tracking-wider text-[#0f2b5c] border-b-[1.5px] border-[#0f2b5c] pb-0.5">
+              {cv.judul_kompetensi || "4. COMPETENCY CERTIFICATION"}
+            </h2>
+            {(cv.spesialisasi_kompetensi && cv.spesialisasi_kompetensi.length > 0
+              ? cv.spesialisasi_kompetensi
+              : cv.sertifikasi && cv.sertifikasi.length > 0
+                ? cv.sertifikasi
+                : []
+            ).length > 0 ? (
+              <ul className="list-disc list-outside ml-4 sm:ml-5 space-y-1 text-[12px] sm:text-[12.5px] text-slate-800 pt-0.5">
+                {(cv.spesialisasi_kompetensi && cv.spesialisasi_kompetensi.length > 0
+                  ? cv.spesialisasi_kompetensi
+                  : cv.sertifikasi || []
+                ).map((cert, cIdx) => (
+                  <li key={cIdx} className="pl-0.5">
+                    {cert}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <div className="text-[12px] text-slate-700 pl-4 pt-0.5">•</div>
+            )}
+          </div>
         </div>
       </div>
 

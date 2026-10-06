@@ -505,4 +505,18 @@ create policy "work_checklists_user_all" on public.work_checklists
 grant select, insert, update, delete on public.work_checklists to authenticated;
 grant all on public.work_checklists to service_role;
 
+-- Migrasi Kolom Presisi Foto Profil & CV (Anti-Pecah & Pengaturan Presisi)
+alter table public.profiles add column if not exists avatar_position text default '50% 50%';
+alter table public.profiles add column if not exists avatar_scale numeric default 1;
+
+alter table public.curriculum_vitae add column if not exists foto_url text;
+alter table public.curriculum_vitae add column if not exists foto_position text default '50% 50%';
+alter table public.curriculum_vitae add column if not exists foto_scale numeric default 1;
+alter table public.curriculum_vitae add column if not exists judul_tentang_saya text default 'Tentang Saya';
+alter table public.curriculum_vitae add column if not exists judul_pendidikan text default '1. Riwayat Pendidikan';
+alter table public.curriculum_vitae add column if not exists judul_pengalaman text default '2. Pengalaman Kerja';
+alter table public.curriculum_vitae add column if not exists judul_keahlian text default '3. Keahlian Utama';
+alter table public.curriculum_vitae add column if not exists judul_kompetensi text default '4. Spesialisasi Kompetensi';
+
+
 
